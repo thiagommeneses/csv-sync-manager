@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -36,7 +35,6 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
   const [theme, setTheme] = useState("");
   const [fileName, setFileName] = useState("");
 
-  // Generate time options in 30-minute intervals
   const timeOptions = [];
   for (let hour = 0; hour < 24; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
@@ -46,7 +44,6 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
     }
   }
 
-  // Atualizar contagem de caracteres e status do SMS
   useEffect(() => {
     const count = smsText.length;
     setCharCount(count);
@@ -63,7 +60,6 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
     }
   }, [smsText]);
 
-  // Atualizar nome do arquivo automaticamente quando as opções mudarem
   useEffect(() => {
     if (scheduledDate) {
       const dateTime = new Date(scheduledDate);
@@ -94,10 +90,8 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
         csvContent = exportToZenvia(csvData, smsText, delimiter);
       }
       
-      // Usar o nome do arquivo personalizado ou gerar um padrão
       const downloadFileName = fileName || (exportType === "omnichat" ? "omnichat_export.csv" : "zenvia_export.csv");
       
-      // Create blob and download
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -108,7 +102,6 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
       link.click();
       document.body.removeChild(link);
       
-      // Salvar na lista de arquivos recentes
       saveRecentFile(csvData, downloadFileName);
       
       onClose();
