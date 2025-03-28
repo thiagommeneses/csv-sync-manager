@@ -12,9 +12,10 @@ interface ExportModalProps {
   onClose: () => void;
   exportType: "omnichat" | "zenvia";
   csvData: CSVData;
+  delimiter?: string;
 }
 
-const ExportModal = ({ isOpen, onClose, exportType, csvData }: ExportModalProps) => {
+const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: ExportModalProps) => {
   const [smsText, setSmsText] = useState("");
   const [charCount, setCharCount] = useState(0);
   const [statusColor, setStatusColor] = useState("text-green-500");
@@ -49,7 +50,7 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData }: ExportModalProps)
           alert("Please enter SMS text for Zenvia export");
           return;
         }
-        csvContent = exportToZenvia(csvData, smsText);
+        csvContent = exportToZenvia(csvData, smsText, delimiter);
         filename = "zenvia_export.csv";
       }
       
