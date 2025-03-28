@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -99,7 +100,9 @@ const HomePage = () => {
               </ul>
             </div>
           ),
-          variant: "warning",
+          // Using 'default' instead of 'warning' since warning is not a valid variant
+          // We can style it to look like a warning with a custom className if needed
+          variant: "default",
         });
       }
       
@@ -196,6 +199,8 @@ const HomePage = () => {
     toast({
       title: "Arquivo dividido com sucesso",
       description: `O arquivo foi dividido em ${parts.length} partes.`,
+      // Using default variant here as well instead of any implicit warning variant
+      variant: "default",
     });
   };
   
