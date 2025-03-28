@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { FilterX, ChevronDown, ChevronUp } from "lucide-react";
+import { FilterX, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { FilterOptions } from "@/types/csv";
 import { CSVStats } from "@/types/csv";
 
@@ -158,13 +158,21 @@ const FilterPanel = ({
               </Select>
               
               {localFilters.templates === 'custom' && (
-                <Input
-                  type="text"
-                  placeholder="Filtrar por template..."
-                  className="mt-2"
-                  value={localFilters.customTemplateFilter || ''}
-                  onChange={(e) => handleFilterChange('customTemplateFilter', e.target.value)}
-                />
+                <div className="mt-2 space-y-1">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder="Digite termos de busca..."
+                      className="pl-8"
+                      value={localFilters.customTemplateFilter || ''}
+                      onChange={(e) => handleFilterChange('customTemplateFilter', e.target.value)}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Digite várias palavras para buscar templates que contenham todos os termos.
+                  </p>
+                </div>
               )}
             </div>
 

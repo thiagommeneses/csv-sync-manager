@@ -1,3 +1,4 @@
+
 import { CSVData, CSVStats, FilterOptions } from '@/types/csv';
 
 export const parseCSV = (csvText: string): CSVData => {
@@ -181,12 +182,16 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
         templateIndex < row.length && (!row[templateIndex] || row[templateIndex].trim() === '')
       );
     } else if (filters.templates === 'custom' && filters.customTemplateFilter) {
-      const lowerCustomFilter = filters.customTemplateFilter.toLowerCase();
-      filteredRows = filteredRows.filter(row => 
-        templateIndex < row.length && 
-        row[templateIndex] && 
-        row[templateIndex].toLowerCase().includes(lowerCustomFilter)
-      );
+      // Modificado para suportar múltiplos termos de busca
+      const searchTerms = filters.customTemplateFilter.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+      
+      filteredRows = filteredRows.filter(row => {
+        if (templateIndex >= row.length || !row[templateIndex]) return false;
+        
+        const templateText = row[templateIndex].toLowerCase();
+        // Verificar se TODOS os termos de busca estão presentes no template
+        return searchTerms.every(term => templateText.includes(term));
+      });
     }
   }
   
