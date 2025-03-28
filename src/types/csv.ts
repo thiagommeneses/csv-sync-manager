@@ -14,16 +14,21 @@ export interface CSVStats {
 }
 
 export interface FilterOptions {
-  phoneNumbers: 'all' | 'removeDuplicates' | 'fixFormat';
+  phoneNumbers: {
+    removeDuplicates: boolean;
+    fixFormat: boolean;
+  };
   messages: 'all' | 'empty' | 'custom';
   customMessageFilter?: string;
   templates: 'all' | 'empty' | 'custom';
   customTemplateFilter?: string;
+  showOnlyMainColumns: boolean;
 }
 
 export interface ExportOptions {
   format: 'omnichat' | 'zenvia';
   smsText?: string; // Only used for Zenvia exports
+  delimiter?: string; // Para escolher o delimitador na exportação
 }
 
 export interface BackupInfo {
@@ -31,4 +36,10 @@ export interface BackupInfo {
   filename: string;
   timestamp: Date;
   size: number;
+}
+
+export interface HelpTopic {
+  id: string;
+  title: string;
+  content: string;
 }

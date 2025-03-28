@@ -3,6 +3,7 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import HomePage from "@/pages/HomePage";
+import HelpPage from "@/pages/HelpPage";
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -10,6 +11,17 @@ const Index = () => {
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const renderActivePage = () => {
+    switch (activePage) {
+      case "home":
+        return <HomePage />;
+      case "help":
+        return <HelpPage />;
+      default:
+        return <HomePage />;
+    }
   };
 
   return (
@@ -27,7 +39,7 @@ const Index = () => {
         <main className={`flex-1 overflow-auto transition-all duration-300 ${
           isSidebarOpen ? "md:ml-64" : "md:ml-16"
         }`}>
-          <HomePage />
+          {renderActivePage()}
         </main>
       </div>
     </div>

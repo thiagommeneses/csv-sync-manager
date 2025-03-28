@@ -3,14 +3,23 @@ import { useState } from "react";
 import { ArrowUp, ArrowDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CSVData } from "@/types/csv";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell
+} from "@/components/ui/table";
 
 interface CSVPreviewProps {
   data: CSVData;
   isLoading?: boolean;
+  showOnlyMainColumns?: boolean;
 }
 
-const CSVPreview = ({ data, isLoading = false }: CSVPreviewProps) => {
-  const [displayRows, setDisplayRows] = useState(10);
+const CSVPreview = ({ data, isLoading = false, showOnlyMainColumns = false }: CSVPreviewProps) => {
+  const [displayRows, setDisplayRows] = useState(50);
   const [sortColumn, setSortColumn] = useState<number>(-1);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
@@ -23,6 +32,20 @@ const CSVPreview = ({ data, isLoading = false }: CSVPreviewProps) => {
     }
   };
   
+  const getMainColumnIndexes = () => {
+    const phoneIndex = data.headers.findIndex(h => h.toLowerCase().trim() === 'phone');
+    const templateIndex = data.headers.findIndex(h => h.toLowerCase().trim() === 'template_title');
+    const messageIndex = data.headers.findIndex(h => h.toLowerCase().trim() === 'reply_message_text');
+    return [phoneIndex, templateIndex, messageIndex].filter(i => i !== -1);
+  };
+  
+  const getVisibleColumns = () => {
+    if (!showOnlyMainColumns) return data.headers.map((_, i) => i);
+    return getMainColumnIndexes();
+  };
+  
+  const visibleColumnIndexes = getVisibleColumns();
+  
   const sortedRows = [...data.rows].sort((a, b) => {
     if (sortColumn === -1) return 0;
     
@@ -30,7 +53,7 @@ const CSVPreview = ({ data, isLoading = false }: CSVPreviewProps) => {
     const bValue = sortColumn < b.length ? b[sortColumn] : '';
     
     if (aValue === bValue) return 0;
-    const comparison = aValue.localeCompare(bValue, undefined, { numeric: true });
+    const comparison = aValue.localeCompare(bValue, 'pt-BR', { numeric: true });
     return sortDirection === 'asc' ? comparison : -comparison;
   });
   
@@ -54,25 +77,25 @@ const CSVPreview = ({ data, isLoading = false }: CSVPreviewProps) => {
   if (!data.headers.length) {
     return (
       <div className="text-center p-12 border rounded-lg bg-gray-50 dark:bg-gray-900">
-        <p className="text-gray-500 dark:text-gray-400">No data to display</p>
+        <p className="text-gray-500 dark:text-gray-400">Nenhum dado para exibir</p>
       </div>
     );
   }
 
   return (
     <div className="overflow-auto rounded-lg border shadow bg-white dark:bg-gray-900">
-      <table className="csv-table">
-        <thead>
-          <tr>
-            <th className="w-10 px-4 py-3">#</th>
-            {data.headers.map((header, index) => (
-              <th 
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10 px-4 py-3">#</TableHead>
+            {visibleColumnIndexes.map(index => (
+              <TableHead 
                 key={index} 
                 className="px-4 py-3 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                 onClick={() => handleSort(index)}
               >
                 <div className="flex items-center space-x-1">
-                  <span>{header}</span>
+                  <span>{data.headers[index]}</span>
                   {sortColumn === index && (
                     sortDirection === 'asc' ? (
                       <ArrowUp className="h-4 w-4" />
@@ -81,23 +104,23 @@ const CSVPreview = ({ data, isLoading = false }: CSVPreviewProps) => {
                     )
                   )}
                 </div>
-              </th>
+              </TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {visibleRows.map((row, rowIndex) => (
-            <tr key={rowIndex} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-              <td className="px-4 py-3 text-gray-500">{rowIndex + 1}</td>
-              {data.headers.map((_, cellIndex) => (
-                <td key={cellIndex} className="px-4 py-3">
-                  {cellIndex < row.length ? row[cellIndex] : ''}
-                </td>
+            <TableRow key={rowIndex} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+              <TableCell className="px-4 py-3 text-gray-500">{rowIndex + 1}</TableCell>
+              {visibleColumnIndexes.map(colIndex => (
+                <TableCell key={colIndex} className="px-4 py-3">
+                  {colIndex < row.length ? row[colIndex] : ''}
+                </TableCell>
               ))}
-            </tr>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
       
       {displayRows < data.totalRows && (
         <div className="p-4 border-t text-center">
@@ -106,11 +129,11 @@ const CSVPreview = ({ data, isLoading = false }: CSVPreviewProps) => {
             onClick={handleLoadMore}
             className="space-x-1"
           >
-            <span>Load more</span>
+            <span>Carregar mais</span>
             <ChevronRight className="h-4 w-4" />
           </Button>
           <p className="text-xs text-gray-500 mt-2">
-            Showing {displayRows} of {data.totalRows} records
+            Exibindo {displayRows} de {data.totalRows} registros
           </p>
         </div>
       )}

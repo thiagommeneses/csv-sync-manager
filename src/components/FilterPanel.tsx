@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { FilterX, ChevronDown, ChevronUp } from "lucide-react";
 import { FilterOptions } from "@/types/csv";
 import { CSVStats } from "@/types/csv";
@@ -47,6 +49,21 @@ const FilterPanel = ({
     onFiltersChange(updatedFilters);
   };
 
+  const handlePhoneFilterChange = (option: 'removeDuplicates' | 'fixFormat', checked: boolean) => {
+    const updatedPhoneFilters = {
+      ...localFilters.phoneNumbers,
+      [option]: checked
+    };
+    
+    const updatedFilters = {
+      ...localFilters,
+      phoneNumbers: updatedPhoneFilters
+    };
+    
+    setLocalFilters(updatedFilters);
+    onFiltersChange(updatedFilters);
+  };
+
   const handleResetFilters = () => {
     onResetFilters();
   };
@@ -55,8 +72,8 @@ const FilterPanel = ({
     <Card className="mb-6">
       <CardHeader className="py-4 flex flex-row items-center justify-between cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
         <div>
-          <CardTitle className="text-lg">Advanced Filters</CardTitle>
-          <CardDescription>Filter and analyze your CSV data</CardDescription>
+          <CardTitle className="text-lg">Filtros Avançados</CardTitle>
+          <CardDescription>Filtre e analise seus dados CSV</CardDescription>
         </div>
         <Button variant="ghost" size="icon">
           {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
@@ -67,64 +84,77 @@ const FilterPanel = ({
         <CardContent className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
-              <div className="font-medium text-sm">Useful Information</div>
+              <div className="font-medium text-sm">Informações Úteis</div>
               <ul className="space-y-1 text-sm">
                 <li className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Total Records:</span>
+                  <span className="text-gray-500 dark:text-gray-400">Total de Registros:</span>
                   <span className="font-medium">{stats.totalRecords}</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Valid Phone Numbers:</span>
+                  <span className="text-gray-500 dark:text-gray-400">Números Válidos:</span>
                   <span className="font-medium">{stats.validPhoneNumbers}</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Duplicate Phone Numbers:</span>
+                  <span className="text-gray-500 dark:text-gray-400">Números Duplicados:</span>
                   <span className="font-medium">{stats.duplicatePhoneNumbers}</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Empty Messages:</span>
+                  <span className="text-gray-500 dark:text-gray-400">Mensagens Vazias:</span>
                   <span className="font-medium">{stats.emptyMessages}</span>
                 </li>
               </ul>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone-filter">Phone Number Filter</Label>
-              <Select 
-                value={localFilters.phoneNumbers} 
-                onValueChange={(value) => handleFilterChange('phoneNumbers', value)}
-              >
-                <SelectTrigger id="phone-filter">
-                  <SelectValue placeholder="Select filter" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All numbers</SelectItem>
-                  <SelectItem value="removeDuplicates">Remove duplicates</SelectItem>
-                  <SelectItem value="fixFormat">Fix number format</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-4">
+              <Label>Filtro de Números de Telefone</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="removeDuplicates" 
+                    checked={localFilters.phoneNumbers.removeDuplicates}
+                    onCheckedChange={(checked) => 
+                      handlePhoneFilterChange('removeDuplicates', checked as boolean)
+                    }
+                  />
+                  <Label htmlFor="removeDuplicates" className="cursor-pointer">
+                    Remover duplicados
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="fixFormat" 
+                    checked={localFilters.phoneNumbers.fixFormat}
+                    onCheckedChange={(checked) => 
+                      handlePhoneFilterChange('fixFormat', checked as boolean)
+                    }
+                  />
+                  <Label htmlFor="fixFormat" className="cursor-pointer">
+                    Corrigir formato dos números
+                  </Label>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="message-filter">Message Filter</Label>
+              <Label htmlFor="message-filter">Filtro de Mensagens</Label>
               <Select 
                 value={localFilters.messages} 
                 onValueChange={(value) => handleFilterChange('messages', value)}
               >
                 <SelectTrigger id="message-filter">
-                  <SelectValue placeholder="Select filter" />
+                  <SelectValue placeholder="Selecione o filtro" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All messages</SelectItem>
-                  <SelectItem value="empty">Empty messages</SelectItem>
-                  <SelectItem value="custom">Custom text</SelectItem>
+                  <SelectItem value="all">Todas as mensagens</SelectItem>
+                  <SelectItem value="empty">Mensagens vazias</SelectItem>
+                  <SelectItem value="custom">Texto personalizado</SelectItem>
                 </SelectContent>
               </Select>
               
               {localFilters.messages === 'custom' && (
                 <Input
                   type="text"
-                  placeholder="Filter by text..."
+                  placeholder="Filtrar por texto..."
                   className="mt-2"
                   value={localFilters.customMessageFilter || ''}
                   onChange={(e) => handleFilterChange('customMessageFilter', e.target.value)}
@@ -133,25 +163,25 @@ const FilterPanel = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="template-filter">Template Filter</Label>
+              <Label htmlFor="template-filter">Filtro de Templates</Label>
               <Select 
                 value={localFilters.templates} 
                 onValueChange={(value) => handleFilterChange('templates', value)}
               >
                 <SelectTrigger id="template-filter">
-                  <SelectValue placeholder="Select filter" />
+                  <SelectValue placeholder="Selecione o filtro" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All templates</SelectItem>
-                  <SelectItem value="empty">Empty templates</SelectItem>
-                  <SelectItem value="custom">Custom template</SelectItem>
+                  <SelectItem value="all">Todos os templates</SelectItem>
+                  <SelectItem value="empty">Templates vazios</SelectItem>
+                  <SelectItem value="custom">Template personalizado</SelectItem>
                 </SelectContent>
               </Select>
               
               {localFilters.templates === 'custom' && (
                 <Input
                   type="text"
-                  placeholder="Filter by template..."
+                  placeholder="Filtrar por template..."
                   className="mt-2"
                   value={localFilters.customTemplateFilter || ''}
                   onChange={(e) => handleFilterChange('customTemplateFilter', e.target.value)}
@@ -160,14 +190,25 @@ const FilterPanel = ({
             </div>
           </div>
           
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={localFilters.showOnlyMainColumns}
+                onCheckedChange={(checked) => handleFilterChange('showOnlyMainColumns', checked)}
+                id="columns-toggle"
+              />
+              <Label htmlFor="columns-toggle" className="cursor-pointer">
+                Mostrar apenas colunas principais
+              </Label>
+            </div>
+            
             <Button 
               variant="outline" 
               onClick={handleResetFilters}
               className="space-x-2"
             >
               <FilterX className="h-4 w-4" />
-              <span>Reset Filters</span>
+              <span>Limpar Filtros</span>
             </Button>
           </div>
         </CardContent>

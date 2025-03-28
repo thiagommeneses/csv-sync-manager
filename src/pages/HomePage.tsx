@@ -9,9 +9,11 @@ import {
   FileText,
   Download,
   Database,
+  HelpCircle,
 } from "lucide-react";
 import { CSVData, CSVStats, FilterOptions } from "@/types/csv";
 import { analyzeCSV, applyFilters } from "@/utils/csvUtils";
+import { useToast } from "@/components/ui/use-toast";
 
 const emptyCSVData: CSVData = {
   headers: [],
@@ -28,32 +30,55 @@ const defaultStats: CSVStats = {
 };
 
 const defaultFilters: FilterOptions = {
-  phoneNumbers: 'all',
+  phoneNumbers: {
+    removeDuplicates: false,
+    fixFormat: false
+  },
   messages: 'all',
-  templates: 'all'
+  templates: 'all',
+  showOnlyMainColumns: false
 };
 
 const HomePage = () => {
+  const { toast } = useToast();
   const [originalCSVData, setOriginalCSVData] = useState<CSVData>(emptyCSVData);
   const [filteredCSVData, setFilteredCSVData] = useState<CSVData>(emptyCSVData);
   const [stats, setStats] = useState<CSVStats>(defaultStats);
   const [filters, setFilters] = useState<FilterOptions>(defaultFilters);
   const [exportType, setExportType] = useState<"omnichat" | "zenvia">("omnichat");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleFileUploaded = (data: CSVData) => {
-    setOriginalCSVData(data);
-    setFilteredCSVData(data);
-    setStats(analyzeCSV(data));
-    // Reset filters when new file is uploaded
-    setFilters(defaultFilters);
+    setIsLoading(true);
+    
+    // Simular um timeout de processamento para arquivos grandes
+    setTimeout(() => {
+      setOriginalCSVData(data);
+      setFilteredCSVData(data);
+      setStats(analyzeCSV(data));
+      // Reset filters when new file is uploaded
+      setFilters(defaultFilters);
+      setIsLoading(false);
+      
+      toast({
+        title: "Arquivo carregado com sucesso",
+        description: `${data.totalRows} registros encontrados.`,
+      });
+    }, 500);
   };
   
   const handleFiltersChange = (newFilters: FilterOptions) => {
     setFilters(newFilters);
-    const filtered = applyFilters(originalCSVData, newFilters);
-    setFilteredCSVData(filtered);
-    setStats(analyzeCSV(filtered));
+    setIsLoading(true);
+    
+    // Simular processamento para permitir que a UI atualize
+    setTimeout(() => {
+      const filtered = applyFilters(originalCSVData, newFilters);
+      setFilteredCSVData(filtered);
+      setStats(analyzeCSV(filtered));
+      setIsLoading(false);
+    }, 100);
   };
   
   const handleResetFilters = () => {
@@ -75,26 +100,34 @@ const HomePage = () => {
         <div>
           <h1 className="text-2xl font-bold">CSV Sync Manager</h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Upload, manage and export CSV files for OmniChat and Zenvia
+            Upload, gerenciamento e exportação de CSV para OmniChat e Zenvia
           </p>
         </div>
         
         {hasData && (
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               className="space-x-2"
               onClick={() => handleExport("omnichat")}
             >
               <Database className="h-4 w-4" />
-              <span>Export for OmniChat</span>
+              <span>Exportar para OmniChat</span>
             </Button>
             <Button
               className="space-x-2"
               onClick={() => handleExport("zenvia")}
             >
               <Download className="h-4 w-4" />
-              <span>Export for Zenvia</span>
+              <span>Exportar para Zenvia</span>
+            </Button>
+            <Button
+              variant="ghost"
+              className="space-x-2"
+              onClick={() => window.location.href = '/help'}
+            >
+              <HelpCircle className="h-4 w-4" />
+              <span>Ajuda</span>
             </Button>
           </div>
         )}
@@ -107,9 +140,9 @@ const HomePage = () => {
           </div>
           <div className="flex flex-col justify-center items-center p-6 border rounded-lg bg-gray-50 dark:bg-gray-900">
             <FileText className="h-16 w-16 text-gray-300 dark:text-gray-700 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No CSV File Loaded</h3>
+            <h3 className="text-lg font-medium mb-2">Nenhum arquivo CSV carregado</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-md mb-4">
-              Upload a CSV file to view and manage its contents
+              Faça upload de um arquivo CSV para visualizar e gerenciar seu conteúdo
             </p>
           </div>
         </div>
@@ -122,13 +155,18 @@ const HomePage = () => {
             onResetFilters={handleResetFilters}
           />
           
-          <CSVPreview data={filteredCSVData} />
+          <CSVPreview 
+            data={filteredCSVData} 
+            isLoading={isLoading} 
+            showOnlyMainColumns={filters.showOnlyMainColumns} 
+          />
           
           <ExportModal 
             isOpen={isExportModalOpen}
             onClose={() => setIsExportModalOpen(false)}
             exportType={exportType}
             csvData={filteredCSVData}
+            delimiter={exportType === 'zenvia' ? ';' : ','}
           />
         </div>
       )}

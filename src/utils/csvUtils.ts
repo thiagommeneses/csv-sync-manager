@@ -9,7 +9,7 @@ export const parseCSV = (csvText: string): CSVData => {
     const nonEmptyLines = lines.filter(line => line.trim().length > 0);
     
     if (nonEmptyLines.length === 0) {
-      throw new Error('CSV file is empty');
+      throw new Error('Arquivo CSV vazio');
     }
 
     // Parse headers
@@ -25,8 +25,8 @@ export const parseCSV = (csvText: string): CSVData => {
       totalRows: rows.length
     };
   } catch (error) {
-    console.error('Error parsing CSV:', error);
-    throw new Error('Failed to parse CSV file. Please check the format.');
+    console.error('Erro ao analisar CSV:', error);
+    throw new Error('Falha ao analisar o arquivo CSV. Por favor, verifique o formato.');
   }
 };
 
@@ -102,10 +102,8 @@ export const normalizePhoneNumber = (phone: string): string => {
   }
   
   // Ensure it has the international code for Brazil (55) if it doesn't already
-  if (normalized.length === 10 || normalized.length === 11) {
-    if (!normalized.startsWith('55')) {
-      normalized = '55' + normalized;
-    }
+  if ((normalized.length === 10 || normalized.length === 11) && !normalized.startsWith('55')) {
+    normalized = '55' + normalized;
   }
   
   return normalized;
@@ -128,7 +126,7 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
   let filteredRows = [...data.rows];
   
   // Apply phone number filters
-  if (filters.phoneNumbers === 'removeDuplicates' && phoneIndex >= 0) {
+  if (filters.phoneNumbers.removeDuplicates && phoneIndex >= 0) {
     const seen = new Set<string>();
     filteredRows = filteredRows.filter(row => {
       if (phoneIndex >= row.length) return true;
@@ -139,7 +137,9 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
       seen.add(phone);
       return true;
     });
-  } else if (filters.phoneNumbers === 'fixFormat' && phoneIndex >= 0) {
+  }
+  
+  if (filters.phoneNumbers.fixFormat && phoneIndex >= 0) {
     filteredRows = filteredRows.map(row => {
       if (phoneIndex < row.length) {
         const fixedRow = [...row];
@@ -195,7 +195,7 @@ export const exportToOmniChat = (data: CSVData): string => {
   );
   
   if (phoneIndex === -1) {
-    throw new Error('Phone column not found in CSV data');
+    throw new Error('Coluna de telefone não encontrada nos dados CSV');
   }
   
   const newHeaders = ['fullNumber'];
@@ -204,16 +204,16 @@ export const exportToOmniChat = (data: CSVData): string => {
     return [phone];
   });
   
-  return convertToCSVString(newHeaders, newRows);
+  return convertToCSVString(newHeaders, newRows, ',');
 };
 
-export const exportToZenvia = (data: CSVData, smsText: string): string => {
+export const exportToZenvia = (data: CSVData, smsText: string, delimiter: string = ';'): string => {
   const phoneIndex = data.headers.findIndex(h => 
     h.toLowerCase().trim() === 'phone'
   );
   
   if (phoneIndex === -1) {
-    throw new Error('Phone column not found in CSV data');
+    throw new Error('Coluna de telefone não encontrada nos dados CSV');
   }
   
   const newHeaders = ['celular', 'sms'];
@@ -222,18 +222,30 @@ export const exportToZenvia = (data: CSVData, smsText: string): string => {
     return [phone, smsText];
   });
   
-  return convertToCSVString(newHeaders, newRows);
+  return convertToCSVString(newHeaders, newRows, delimiter);
 };
 
-export const convertToCSVString = (headers: string[], rows: string[][]): string => {
-  const headerLine = headers.join(',');
+export const convertToCSVString = (headers: string[], rows: string[][], delimiter: string = ','): string => {
+  const headerLine = headers.join(delimiter);
   const rowLines = rows.map(row => row.map(cell => {
     // Escape quotes and wrap in quotes if needed
-    if (cell.includes('"') || cell.includes(',') || cell.includes('\n')) {
+    if (cell.includes('"') || cell.includes(delimiter) || cell.includes('\n')) {
       return `"${cell.replace(/"/g, '""')}"`;
     }
     return cell;
-  }).join(','));
+  }).join(delimiter));
   
   return [headerLine, ...rowLines].join('\n');
+};
+
+// Função para contar caracteres SMS
+export const countSMSCharacters = (text: string): number => {
+  return text.length;
+};
+
+// Verificar se o tamanho do SMS está dentro dos limites
+export const getSMSLengthStatus = (length: number): 'ok' | 'warning' | 'danger' => {
+  if (length <= 130) return 'ok';
+  if (length <= 159) return 'warning';
+  return 'danger';
 };
