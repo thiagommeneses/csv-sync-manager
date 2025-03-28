@@ -11,6 +11,7 @@ export interface CSVStats {
   validPhoneNumbers: number;
   duplicatePhoneNumbers: number;
   emptyMessages: number;
+  correctedPhoneNumbers?: number;
 }
 
 export interface FilterOptions {

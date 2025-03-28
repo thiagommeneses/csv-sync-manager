@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import CSVUpload from "@/components/CSVUpload";
@@ -36,7 +35,7 @@ const defaultFilters: FilterOptions = {
   },
   messages: 'all',
   templates: 'all',
-  showOnlyMainColumns: false
+  showOnlyMainColumns: true
 };
 
 const HomePage = () => {
@@ -57,8 +56,8 @@ const HomePage = () => {
       setOriginalCSVData(data);
       setFilteredCSVData(data);
       setStats(analyzeCSV(data));
-      // Reset filters when new file is uploaded
-      setFilters(defaultFilters);
+      // Reset filters when new file is uploaded, but keep showOnlyMainColumns true
+      setFilters({...defaultFilters, showOnlyMainColumns: true});
       setIsLoading(false);
       
       toast({
@@ -76,13 +75,22 @@ const HomePage = () => {
     setTimeout(() => {
       const filtered = applyFilters(originalCSVData, newFilters);
       setFilteredCSVData(filtered);
-      setStats(analyzeCSV(filtered));
+      
+      // Verificar se há estatísticas adicionais disponíveis
+      if ((filtered as any).stats) {
+        setStats((filtered as any).stats);
+      } else {
+        setStats(analyzeCSV(filtered));
+      }
+      
       setIsLoading(false);
     }, 100);
   };
   
   const handleResetFilters = () => {
-    setFilters(defaultFilters);
+    // Mantém a opção de mostrar apenas colunas principais ao resetar
+    const resetFilters = {...defaultFilters, showOnlyMainColumns: true};
+    setFilters(resetFilters);
     setFilteredCSVData(originalCSVData);
     setStats(analyzeCSV(originalCSVData));
   };
@@ -90,6 +98,10 @@ const HomePage = () => {
   const handleExport = (type: "omnichat" | "zenvia") => {
     setExportType(type);
     setIsExportModalOpen(true);
+  };
+
+  const handleHelpClick = () => {
+    window.location.href = '/help';
   };
 
   const hasData = originalCSVData.headers.length > 0;
@@ -124,7 +136,7 @@ const HomePage = () => {
             <Button
               variant="ghost"
               className="space-x-2"
-              onClick={() => window.location.href = '/help'}
+              onClick={handleHelpClick}
             >
               <HelpCircle className="h-4 w-4" />
               <span>Ajuda</span>

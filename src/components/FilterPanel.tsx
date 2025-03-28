@@ -98,6 +98,12 @@ const FilterPanel = ({
                   <span className="text-gray-500 dark:text-gray-400">Números Duplicados:</span>
                   <span className="font-medium">{stats.duplicatePhoneNumbers}</span>
                 </li>
+                {localFilters.phoneNumbers.fixFormat && (
+                  <li className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">Números Corrigidos:</span>
+                    <span className="font-medium">{stats.correctedPhoneNumbers || 0}</span>
+                  </li>
+                )}
                 <li className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">Mensagens Vazias:</span>
                   <span className="font-medium">{stats.emptyMessages}</span>
@@ -136,33 +142,6 @@ const FilterPanel = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="message-filter">Filtro de Mensagens</Label>
-              <Select 
-                value={localFilters.messages} 
-                onValueChange={(value) => handleFilterChange('messages', value)}
-              >
-                <SelectTrigger id="message-filter">
-                  <SelectValue placeholder="Selecione o filtro" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as mensagens</SelectItem>
-                  <SelectItem value="empty">Mensagens vazias</SelectItem>
-                  <SelectItem value="custom">Texto personalizado</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {localFilters.messages === 'custom' && (
-                <Input
-                  type="text"
-                  placeholder="Filtrar por texto..."
-                  className="mt-2"
-                  value={localFilters.customMessageFilter || ''}
-                  onChange={(e) => handleFilterChange('customMessageFilter', e.target.value)}
-                />
-              )}
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="template-filter">Filtro de Templates</Label>
               <Select 
                 value={localFilters.templates} 
@@ -185,6 +164,33 @@ const FilterPanel = ({
                   className="mt-2"
                   value={localFilters.customTemplateFilter || ''}
                   onChange={(e) => handleFilterChange('customTemplateFilter', e.target.value)}
+                />
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="message-filter">Filtro de Mensagens</Label>
+              <Select 
+                value={localFilters.messages} 
+                onValueChange={(value) => handleFilterChange('messages', value)}
+              >
+                <SelectTrigger id="message-filter">
+                  <SelectValue placeholder="Selecione o filtro" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as mensagens</SelectItem>
+                  <SelectItem value="empty">Mensagens vazias</SelectItem>
+                  <SelectItem value="custom">Texto personalizado</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {localFilters.messages === 'custom' && (
+                <Input
+                  type="text"
+                  placeholder="Filtrar por texto..."
+                  className="mt-2"
+                  value={localFilters.customMessageFilter || ''}
+                  onChange={(e) => handleFilterChange('customMessageFilter', e.target.value)}
                 />
               )}
             </div>

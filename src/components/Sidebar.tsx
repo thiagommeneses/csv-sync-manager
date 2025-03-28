@@ -32,8 +32,8 @@ const Sidebar = ({ isOpen, toggleSidebar, activePage, setActivePage }: SidebarPr
   return (
     <div 
       className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-slate-50 dark:bg-gray-900 border-r transition-all duration-300 ${
-        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-16"
-      } ${isOpen ? "w-64" : "w-16"}`}
+        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-14"
+      } ${isOpen ? "w-56" : "w-14"}`}
     >
       <div className="flex items-center justify-between p-4 border-b">
         {isOpen && <h2 className="font-bold text-lg">Menu</h2>}

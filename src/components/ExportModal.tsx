@@ -47,7 +47,7 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
         filename = "omnichat_export.csv";
       } else {
         if (!smsText.trim()) {
-          alert("Please enter SMS text for Zenvia export");
+          alert("Por favor, insira o texto do SMS para exportar para o Zenvia");
           return;
         }
         csvContent = exportToZenvia(csvData, smsText, delimiter);
@@ -67,22 +67,22 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
       
       onClose();
     } catch (error) {
-      console.error("Export error:", error);
-      alert("Failed to export CSV file. Please try again.");
+      console.error("Erro na exportação:", error);
+      alert("Falha ao exportar o arquivo CSV. Por favor, tente novamente.");
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md animate-in fade-in-50 slide-in-from-bottom-10">
         <DialogHeader>
           <DialogTitle>
-            {exportType === "omnichat" ? "Export to OmniChat" : "Export to Zenvia"}
+            {exportType === "omnichat" ? "Exportar para OmniChat" : "Exportar para Zenvia"}
           </DialogTitle>
           <DialogDescription>
             {exportType === "omnichat" 
-              ? "Export your data in OmniChat format with a single 'fullNumber' column." 
-              : "Export your data in Zenvia format with 'celular' and 'sms' columns."}
+              ? "Exporte seus dados no formato OmniChat com uma única coluna 'fullNumber'." 
+              : "Exporte seus dados no formato Zenvia com as colunas 'celular' e 'sms'."}
           </DialogDescription>
         </DialogHeader>
         
@@ -90,11 +90,11 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label htmlFor="sms-text" className="text-sm font-medium">
-                SMS Message Text
+                Texto da Mensagem SMS
               </label>
               <Textarea
                 id="sms-text"
-                placeholder="Enter your SMS message here..."
+                placeholder="Digite sua mensagem SMS aqui..."
                 className="min-h-[100px]"
                 value={smsText}
                 onChange={(e) => setSmsText(e.target.value)}
@@ -104,13 +104,13 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
                 <div className="flex items-center gap-1">
                   {statusEmoji}
                   <span>
-                    {charCount <= 130 && "Recommended length"}
-                    {charCount > 130 && charCount <= 159 && "Warning: approaching limit"}
-                    {charCount > 159 && "Critical: message too long"}
+                    {charCount <= 130 && "Comprimento recomendado"}
+                    {charCount > 130 && charCount <= 159 && "Aviso: aproximando-se do limite"}
+                    {charCount > 159 && "Crítico: mensagem muito longa"}
                   </span>
                 </div>
                 <span>
-                  {charCount}/160 characters
+                  {charCount}/160 caracteres
                 </span>
               </div>
             </div>
@@ -119,14 +119,14 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
         
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
           <Button 
             onClick={handleExport}
             className="space-x-2"
           >
             <Download className="h-4 w-4" />
-            <span>Export</span>
+            <span>Exportar</span>
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -37,7 +37,7 @@ const Index = () => {
         />
         
         <main className={`flex-1 overflow-auto transition-all duration-300 ${
-          isSidebarOpen ? "md:ml-64" : "md:ml-16"
+          isSidebarOpen ? "md:ml-56" : "md:ml-14"
         }`}>
           {renderActivePage()}
         </main>

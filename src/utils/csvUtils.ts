@@ -1,4 +1,3 @@
-
 import { CSVData, CSVStats, FilterOptions } from '@/types/csv';
 
 export const parseCSV = (csvText: string): CSVData => {
@@ -124,6 +123,7 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
   );
   
   let filteredRows = [...data.rows];
+  let correctedPhoneNumbers = 0;
   
   // Apply phone number filters
   if (filters.phoneNumbers.removeDuplicates && phoneIndex >= 0) {
@@ -142,8 +142,16 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
   if (filters.phoneNumbers.fixFormat && phoneIndex >= 0) {
     filteredRows = filteredRows.map(row => {
       if (phoneIndex < row.length) {
+        const originalPhone = row[phoneIndex];
+        const fixedPhone = normalizePhoneNumber(originalPhone);
+        
+        // Contar números corrigidos
+        if (originalPhone !== fixedPhone && fixedPhone) {
+          correctedPhoneNumbers++;
+        }
+        
         const fixedRow = [...row];
-        fixedRow[phoneIndex] = normalizePhoneNumber(row[phoneIndex]);
+        fixedRow[phoneIndex] = fixedPhone;
         return fixedRow;
       }
       return row;
@@ -182,11 +190,20 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
     }
   }
   
-  return {
+  const result = {
     ...data,
     rows: filteredRows,
     totalRows: filteredRows.length
   };
+  
+  // Incluir estatísticas adicionais se necessário
+  if (filters.phoneNumbers.fixFormat) {
+    const stats = analyzeCSV(result);
+    stats.correctedPhoneNumbers = correctedPhoneNumbers;
+    (result as any).stats = stats;
+  }
+  
+  return result;
 };
 
 export const exportToOmniChat = (data: CSVData): string => {
