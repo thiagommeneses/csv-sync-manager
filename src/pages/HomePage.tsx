@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -100,8 +99,6 @@ const HomePage = () => {
               </ul>
             </div>
           ),
-          // Using 'default' instead of 'warning' since warning is not a valid variant
-          // We can style it to look like a warning with a custom className if needed
           variant: "default",
         });
       }
@@ -199,7 +196,6 @@ const HomePage = () => {
     toast({
       title: "Arquivo dividido com sucesso",
       description: `O arquivo foi dividido em ${parts.length} partes.`,
-      // Using default variant here as well instead of any implicit warning variant
       variant: "default",
     });
   };
@@ -318,7 +314,15 @@ const HomePage = () => {
             delimiter={exportType === 'zenvia' ? ';' : ','}
           />
           
-          <AlertDialog open={isSplitDialogOpen} onOpenChange={setIsSplitDialogOpen}>
+          <AlertDialog 
+            open={isSplitDialogOpen} 
+            onOpenChange={(open) => {
+              if (!open) {
+              } else {
+                setIsSplitDialogOpen(true);
+              }
+            }}
+          >
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Dividir arquivo CSV</AlertDialogTitle>
