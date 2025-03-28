@@ -1,4 +1,3 @@
-
 import { CSVData, CSVStats, FilterOptions } from '@/types/csv';
 
 export const parseCSV = (csvText: string): CSVData => {
@@ -211,7 +210,7 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
   return result;
 };
 
-export const exportToOmniChat = (data: CSVData): string => {
+export const exportToOmniChat = (data: CSVData, fileName?: string): string => {
   const phoneIndex = data.headers.findIndex(h => 
     h.toLowerCase().trim() === 'phone'
   );
@@ -260,14 +259,191 @@ export const convertToCSVString = (headers: string[], rows: string[][], delimite
   return [headerLine, ...rowLines].join('\n');
 };
 
-// Função para contar caracteres SMS
 export const countSMSCharacters = (text: string): number => {
   return text.length;
 };
 
-// Verificar se o tamanho do SMS está dentro dos limites
 export const getSMSLengthStatus = (length: number): 'ok' | 'warning' | 'danger' => {
   if (length <= 130) return 'ok';
   if (length <= 159) return 'warning';
   return 'danger';
+};
+
+export const splitCSVFile = (data: CSVData, maxRowsPerPart: number): CSVData[] => {
+  if (!data.rows.length || maxRowsPerPart <= 0) {
+    return [data];
+  }
+
+  const totalParts = Math.ceil(data.rows.length / maxRowsPerPart);
+  const result: CSVData[] = [];
+
+  for (let i = 0; i < totalParts; i++) {
+    const startIdx = i * maxRowsPerPart;
+    const endIdx = Math.min((i + 1) * maxRowsPerPart, data.rows.length);
+    const partRows = data.rows.slice(startIdx, endIdx);
+
+    result.push({
+      headers: [...data.headers],
+      rows: partRows,
+      rawData: '', // A rawData será recalculada se necessário
+      totalRows: partRows.length
+    });
+  }
+
+  return result;
+};
+
+export const formatDate = (date: Date): string => {
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
+export const formatTime = (date: Date): string => {
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}h${minutes}`;
+};
+
+export const generateFileName = (
+  channel: 'WhatsApp' | 'SMS', 
+  scheduledDate: Date, 
+  theme: string = ''
+): string => {
+  const prefix = 'V4-MKT';
+  const type = 'DISPARO';
+  const formattedScheduledDate = formatDate(scheduledDate);
+  const formattedScheduledTime = formatTime(scheduledDate);
+  
+  const now = new Date();
+  const formattedGeneratedDate = formatDate(now);
+  const formattedGeneratedTime = formatTime(now);
+  
+  const themePart = theme ? `_${theme}` : '';
+  
+  return `${prefix}_${channel}_${type}_${formattedScheduledDate}_${formattedScheduledTime}${themePart}_GERADO-${formattedGeneratedDate}_${formattedGeneratedTime}.csv`;
+};
+
+export const saveToLocalStorage = (key: string, data: any): void => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error('Erro ao salvar no localStorage:', error);
+  }
+};
+
+export const getFromLocalStorage = (key: string): any => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
+  } catch (error) {
+    console.error('Erro ao recuperar do localStorage:', error);
+    return null;
+  }
+};
+
+export const validatePhoneNumber = (phone: string): { isValid: boolean; reason?: string } => {
+  const normalized = normalizePhoneNumber(phone);
+  
+  if (!normalized) {
+    return { isValid: false, reason: 'Número de telefone vazio' };
+  }
+  
+  if (normalized.length < 12) {
+    return { isValid: false, reason: 'Número de telefone muito curto' };
+  }
+  
+  if (normalized.length > 13) {
+    return { isValid: false, reason: 'Número de telefone muito longo' };
+  }
+  
+  // Validação específica para números brasileiros
+  if (normalized.startsWith('55')) {
+    const ddd = normalized.substring(2, 4);
+    const validDDDs = ['11', '12', '13', '14', '15', '16', '17', '18', '19', '21', '22', '24', '27', '28', '31', '32', '33', '34', '35', '37', '38', '41', '42', '43', '44', '45', '46', '47', '48', '49', '51', '53', '54', '55', '61', '62', '63', '64', '65', '66', '67', '68', '69', '71', '73', '74', '75', '77', '79', '81', '82', '83', '84', '85', '86', '87', '88', '89', '91', '92', '93', '94', '95', '96', '97', '98', '99'];
+    
+    if (!validDDDs.includes(ddd)) {
+      return { isValid: false, reason: 'DDD inválido para Brasil' };
+    }
+  }
+  
+  return { isValid: true };
+};
+
+export const validateCSVDataAdvanced = (data: CSVData): { isValid: boolean; issues: string[] } => {
+  const issues: string[] = [];
+  
+  // Verificar se há headers
+  if (data.headers.length === 0) {
+    issues.push('O arquivo CSV não contém cabeçalhos');
+  }
+  
+  // Verificar se há colunas obrigatórias
+  const requiredColumns = ['phone', 'template_title', 'reply_message_text'];
+  const headers = data.headers.map(h => h.toLowerCase().trim());
+  
+  for (const col of requiredColumns) {
+    if (!headers.includes(col)) {
+      issues.push(`Coluna obrigatória ausente: ${col}`);
+    }
+  }
+  
+  // Verificar consistência das linhas
+  const inconsistentRows = data.rows.filter(row => row.length !== data.headers.length);
+  if (inconsistentRows.length > 0) {
+    issues.push(`${inconsistentRows.length} linha(s) com número inconsistente de colunas`);
+  }
+  
+  return {
+    isValid: issues.length === 0,
+    issues
+  };
+};
+
+export interface RecentFile {
+  id: string;
+  name: string;
+  date: string;
+  rows: number;
+  preview: string;
+}
+
+export const saveRecentFile = (data: CSVData, fileName: string): void => {
+  try {
+    const recentFiles: RecentFile[] = getFromLocalStorage('recentFiles') || [];
+    
+    // Criar um ID único baseado na data
+    const id = `file_${Date.now()}`;
+    
+    // Criar uma amostra dos dados para pré-visualização
+    const previewRows = data.rows.slice(0, 3);
+    const preview = previewRows.map(row => {
+      // Encontrar o índice da coluna de telefone
+      const phoneIndex = data.headers.findIndex(h => h.toLowerCase().trim() === 'phone');
+      return phoneIndex >= 0 && phoneIndex < row.length ? row[phoneIndex] : 'N/A';
+    }).join(', ');
+    
+    const newRecentFile: RecentFile = {
+      id,
+      name: fileName,
+      date: new Date().toISOString(),
+      rows: data.rows.length,
+      preview
+    };
+    
+    // Adicionar ao início da lista e manter apenas os 10 mais recentes
+    recentFiles.unshift(newRecentFile);
+    if (recentFiles.length > 10) {
+      recentFiles.pop();
+    }
+    
+    saveToLocalStorage('recentFiles', recentFiles);
+  } catch (error) {
+    console.error('Erro ao salvar arquivo recente:', error);
+  }
+};
+
+export const getRecentFiles = (): RecentFile[] => {
+  return getFromLocalStorage('recentFiles') || [];
 };

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Mail, Globe, Clock, ExternalLink } from "lucide-react";
+import { MessageSquare, Mail, Globe, Clock, ExternalLink, FileText } from "lucide-react";
 
 const HelpPage = () => {
   const helpTopics = [
@@ -52,6 +52,35 @@ const HelpPage = () => {
       - Exportar para Zenvia: cria um arquivo CSV com duas colunas - 'celular' e 'sms'. A coluna 'sms' contém o texto que você deseja enviar, com limite recomendado de 160 caracteres.`
     },
     {
+      id: "filename-convention",
+      title: "Padrão de Nomenclatura de Arquivos",
+      content: `📁 Padrão de Nomenclatura de Arquivos de Disparo
+
+Para manter organização, rastreabilidade e fácil identificação visual dos arquivos de disparo (WhatsApp ou SMS), definimos o seguinte padrão de nomenclatura para os CSVs gerados:
+
+✅ Estrutura:
+[PREFIXO]_[CANAL]_DISPARO_[DATA]_[HORA]_[TEMA]_GERADO-[DATA]_[HORA].csv
+
+📘 Campos explicados:
+- PREFIXO: padrão fixo V4-MKT
+- CANAL: define o canal utilizado – WhatsApp ou SMS
+- DISPARO: palavra-chave fixa que identifica a função do arquivo
+- DATA: data do envio planejado no formato DD-MM-AAAA
+- HORA: hora do envio planejado no formato HHhMM (ex: 19h30)
+- TEMA: campo curto com o nome da campanha ou tema (opcional)
+- GERADO: identifica a data e hora em que o arquivo foi gerado, também no formato DD-MM-AAAA_HHhMM
+
+📂 Exemplos:
+- V4-MKT_WhatsApp_DISPARO_28-03-2025_19h30_SemanaConsumidor_GERADO-28-03-2025_15h42.csv
+- V4-MKT_SMS_DISPARO_01-04-2025_09h00_Pascoa2025_GERADO-28-03-2025_17h20.csv
+- V4-MKT_WhatsApp_DISPARO_05-05-2025_14h30__GERADO-04-05-2025_22h00.csv (sem tema)
+
+🧠 Dicas:
+- Sempre preencha a data e hora do disparo planejado, mesmo que ainda não seja final.
+- O campo TEMA é opcional, mas ajuda muito na identificação da campanha.
+- Use esse padrão para facilitar buscas, versionamento e organização na pasta de arquivos.`
+    },
+    {
       id: "phone-format",
       title: "Formato de Números",
       content: `O sistema normaliza os números de telefone para o formato internacional:
@@ -62,12 +91,44 @@ const HelpPage = () => {
       - Exemplo: (11) 98765-4321 -> 5511987654321`
     },
     {
+      id: "file-splitting",
+      title: "Divisão de Arquivos",
+      content: `Para facilitar o gerenciamento de arquivos grandes, o CSV Sync Manager oferece a funcionalidade de divisão de arquivos:
+      
+      - Acesse a função pelo botão "Dividir Arquivo" após carregar um CSV
+      - Defina o número de partes desejado (entre 2 e 10)
+      - O sistema dividirá o arquivo em partes aproximadamente iguais
+      - Cada parte será baixada como um arquivo CSV separado
+      - Útil para plataformas com limites de tamanho ou registros por envio`
+    },
+    {
+      id: "recent-files",
+      title: "Arquivos Recentes",
+      content: `O sistema mantém um histórico dos 10 últimos arquivos exportados:
+      
+      - Os arquivos são armazenados localmente no seu navegador
+      - Para cada arquivo, são guardadas informações como nome, data e número de registros
+      - Você pode acessar essa lista na tela inicial quando nenhum arquivo está carregado
+      - Isso facilita o acompanhamento dos trabalhos realizados recentemente`
+    },
+    {
+      id: "advanced-validation",
+      title: "Validação Avançada",
+      content: `O CSV Sync Manager realiza validações detalhadas nos dados importados:
+      
+      - Verificação de presença de colunas obrigatórias
+      - Análise de consistência entre número de colunas no cabeçalho e nas linhas
+      - Validação avançada de números de telefone (formato, DDD, código de país)
+      - Detecção e alerta sobre potenciais problemas nos dados
+      - Sugestão de correções para formatos inadequados`
+    },
+    {
       id: "limits",
       title: "Limites do Sistema",
       content: `O CSV Sync Manager possui os seguintes limites:
       
       - Tamanho máximo de arquivo: 50MB
-      - Tamanho máximo de lote: 30.000 registros (exibindo 50 por vez)
+      - Tamanho máximo de lote: 30.000 registros (exibindo 5 por vez com opção de carregar mais)
       - Timeout de processamento: 90 segundos (para operações complexas)
       - Suporte apenas para arquivos CSV`
     },
@@ -79,7 +140,9 @@ const HelpPage = () => {
       - Certifique-se de que seu arquivo CSV contenha um cabeçalho
       - Verifique se o arquivo contém as colunas obrigatórias (phone, template_title, reply_message_text)
       - Para envios via Zenvia, mantenha as mensagens SMS dentro do limite de 160 caracteres
-      - Utilize a funcionalidade de correção de formato de números para garantir compatibilidade`
+      - Utilize a funcionalidade de correção de formato de números para garantir compatibilidade
+      - Divida arquivos grandes em partes menores para facilitar o gerenciamento
+      - Use o padrão de nomenclatura para organizar melhor seus arquivos`
     }
   ];
 

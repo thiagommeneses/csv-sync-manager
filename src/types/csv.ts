@@ -30,6 +30,10 @@ export interface ExportOptions {
   format: 'omnichat' | 'zenvia';
   smsText?: string; // Only used for Zenvia exports
   delimiter?: string; // Para escolher o delimitador na exportação
+  fileName?: string; // Nome personalizado do arquivo
+  scheduledDate?: Date; // Data planejada para o disparo
+  scheduledTime?: string; // Hora planejada para o disparo
+  theme?: string; // Tema da campanha
 }
 
 export interface BackupInfo {
@@ -44,3 +48,30 @@ export interface HelpTopic {
   title: string;
   content: string;
 }
+
+export interface PhoneValidation {
+  phone: string;
+  isValid: boolean;
+  reason?: string;
+  suggestedFix?: string;
+}
+
+export interface CSVValidation {
+  isValid: boolean;
+  issues: string[];
+  validationDate: Date;
+}
+
+export interface RecentFile {
+  id: string;
+  name: string;
+  date: string;
+  rows: number;
+  preview: string;
+}
+
+export type FileSplitOptions = {
+  partCount: number;
+  maxRowsPerPart?: number;
+  includeHeaders: boolean;
+};

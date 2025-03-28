@@ -19,7 +19,7 @@ interface CSVPreviewProps {
 }
 
 const CSVPreview = ({ data, isLoading = false, showOnlyMainColumns = false }: CSVPreviewProps) => {
-  const [displayRows, setDisplayRows] = useState(50);
+  const [displayRows, setDisplayRows] = useState(5); // Alterado para 5 linhas
   const [sortColumn, setSortColumn] = useState<number>(-1);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
@@ -60,7 +60,7 @@ const CSVPreview = ({ data, isLoading = false, showOnlyMainColumns = false }: CS
   const visibleRows = sortedRows.slice(0, displayRows);
   
   const handleLoadMore = () => {
-    setDisplayRows(prev => Math.min(prev + 100, data.totalRows));
+    setDisplayRows(prev => Math.min(prev + 50, data.totalRows));
   };
 
   if (isLoading) {
