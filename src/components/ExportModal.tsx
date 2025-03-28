@@ -15,6 +15,7 @@ import {
   generateFileName,
   saveRecentFile 
 } from "@/utils/csvUtils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -34,6 +35,16 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
   const [scheduledTime, setScheduledTime] = useState("12:00");
   const [theme, setTheme] = useState("");
   const [fileName, setFileName] = useState("");
+
+  // Generate time options in 30-minute intervals
+  const timeOptions = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const formattedHour = hour.toString().padStart(2, '0');
+      const formattedMinute = minute.toString().padStart(2, '0');
+      timeOptions.push(`${formattedHour}:${formattedMinute}`);
+    }
+  }
 
   // Atualizar contagem de caracteres e status do SMS
   useEffect(() => {
@@ -65,8 +76,8 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
     }
   }, [scheduledDate, scheduledTime, theme, exportType]);
 
-  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setScheduledTime(e.target.value);
+  const handleTimeChange = (value: string) => {
+    setScheduledTime(value);
   };
 
   const handleExport = () => {
@@ -191,13 +202,21 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
                     <Clock className="h-4 w-4" />
                     <span>Hora do Disparo</span>
                   </Label>
-                  <Input
-                    id="scheduled-time"
-                    type="time"
-                    value={scheduledTime}
-                    onChange={handleTimeChange}
-                    className="w-full"
-                  />
+                  <Select 
+                    value={scheduledTime} 
+                    onValueChange={handleTimeChange}
+                  >
+                    <SelectTrigger id="scheduled-time" className="w-full">
+                      <SelectValue placeholder="Selecione o horário" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeOptions.map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               
