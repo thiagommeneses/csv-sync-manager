@@ -500,3 +500,12 @@ export const getCurrentFile = (): CSVData | null => {
 };
 
 export type { RecentFile };
+
+export const clearRecentFiles = (): void => {
+  try {
+    localStorage.removeItem('csv-sync-recent-files');
+    console.log('Recent files cleared from localStorage');
+  } catch (error) {
+    console.error('Error clearing recent files:', error);
+  }
+};

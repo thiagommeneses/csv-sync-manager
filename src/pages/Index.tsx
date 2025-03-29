@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import HomePage from "@/pages/HomePage";
@@ -10,6 +10,18 @@ import SettingsPage from "@/pages/SettingsPage";
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState("home");
+
+  // Persist the active page in localStorage to prevent losing it on refresh
+  useEffect(() => {
+    const savedPage = localStorage.getItem('csv-sync-active-page');
+    if (savedPage) {
+      setActivePage(savedPage);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('csv-sync-active-page', activePage);
+  }, [activePage]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);

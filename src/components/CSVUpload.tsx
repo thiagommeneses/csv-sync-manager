@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Upload, FileUp, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface CSVUploadProps {
-  onFileUploaded: (data: CSVData) => void;
+  onFileUploaded: (data: CSVData, originalFilename?: string) => void;
 }
 
 const CSVUpload = ({ onFileUploaded }: CSVUploadProps) => {
@@ -28,6 +28,15 @@ const CSVUpload = ({ onFileUploaded }: CSVUploadProps) => {
   const [pendingLargeFile, setPendingLargeFile] = useState<File | null>(null);
   const [showLargeFileConfirmation, setShowLargeFileConfirmation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Cleanup function to reset file input when component unmounts
+  useEffect(() => {
+    return () => {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    };
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -72,8 +81,32 @@ const CSVUpload = ({ onFileUploaded }: CSVUploadProps) => {
       setError(errorMessage);
       toast.error(`Upload failed: ${errorMessage}`);
       setIsLoading(false);
+      
+      // Add to error logs
+      addErrorLog('error', `Upload failed: ${errorMessage}`, 'CSVUpload');
     }
   }, [onFileUploaded]);
+
+  const addErrorLog = (type: 'error' | 'warning', message: string, component: string, details?: string) => {
+    try {
+      const savedLogs = localStorage.getItem('csv-sync-error-logs') || '[]';
+      const logs = JSON.parse(savedLogs);
+      
+      const newLog = {
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        type,
+        message,
+        component,
+        details
+      };
+      
+      logs.push(newLog);
+      localStorage.setItem('csv-sync-error-logs', JSON.stringify(logs));
+    } catch (e) {
+      console.error("Failed to save error log:", e);
+    }
+  };
 
   const processFileContent = async (file: File) => {
     try {
@@ -88,11 +121,22 @@ const CSVUpload = ({ onFileUploaded }: CSVUploadProps) => {
 
       // Success
       toast.success(`File uploaded: ${file.name}`);
-      onFileUploaded(csvData);
+      
+      // Pass the original filename to the handler
+      onFileUploaded(csvData, file.name);
+      
+      // Clear file input to allow uploading the same file again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
       setError(errorMessage);
       toast.error(`Upload failed: ${errorMessage}`);
+      
+      // Add to error logs
+      addErrorLog('error', `Parse failed: ${errorMessage}`, 'CSVUpload', 
+                 `File: ${file.name}, Size: ${formatFileSize(file.size)}`);
     } finally {
       setIsLoading(false);
       setIsDragging(false);

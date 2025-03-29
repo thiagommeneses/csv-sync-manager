@@ -1,6 +1,8 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Calendar, Table, HardDrive, Hash, Upload, Database } from "lucide-react";
 import { RecentFile } from "@/types/csv";
+import { useEffect, useState } from "react";
 
 interface RecentFilesPanelProps {
   files: RecentFile[];
@@ -8,6 +10,21 @@ interface RecentFilesPanelProps {
 }
 
 const RecentFilesPanel = ({ files, onFileSelect }: RecentFilesPanelProps) => {
+  const [processedFiles, setProcessedFiles] = useState<RecentFile[]>([]);
+  
+  // Process files to ensure all have properly extracted data
+  useEffect(() => {
+    const processed = files.map(file => {
+      // Ensure we have proper first data row preview
+      let firstDataRow = getFirstDataRowPreview(file);
+      return {
+        ...file,
+        processedPreview: firstDataRow
+      };
+    });
+    setProcessedFiles(processed);
+  }, [files]);
+  
   // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -50,9 +67,12 @@ const RecentFilesPanel = ({ files, onFileSelect }: RecentFilesPanelProps) => {
     
     try {
       const previewData = JSON.parse(file.preview);
-      if (previewData.rows && previewData.rows.length > 0) {
-        // Return the first data row joined as a string
-        return previewData.rows[0].join(', ');
+      if (previewData.rows && previewData.rows.length > 1) {
+        // Get the first data row (index 1) rather than the header row (index 0)
+        return previewData.rows[1].join(', ');
+      } else if (previewData.rows && previewData.rows.length === 1) {
+        // If there's only one row, it's probably the header
+        return "Não há dados para exibir";
       }
     } catch (error) {
       console.error("Error parsing preview data:", error);
@@ -81,11 +101,11 @@ const RecentFilesPanel = ({ files, onFileSelect }: RecentFilesPanelProps) => {
       </CardHeader>
       <CardContent className="py-2">
         <div className="space-y-2">
-          {files.length === 0 ? (
+          {processedFiles.length === 0 ? (
             <p className="text-sm text-gray-500">Nenhum arquivo recente</p>
           ) : (
             <div className="space-y-2 max-h-64 overflow-auto">
-              {files.map((file) => (
+              {processedFiles.map((file) => (
                 <div 
                   key={file.id}
                   className="flex items-start gap-3 p-2 text-sm border rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
@@ -131,9 +151,9 @@ const RecentFilesPanel = ({ files, onFileSelect }: RecentFilesPanelProps) => {
                         <Hash className="h-3 w-3" />
                         <span className="font-medium">Arquivo original:</span> {extractFileName(file)}
                       </p>
-                      {getFirstDataRowPreview(file) && (
+                      {file.processedPreview && (
                         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          <span className="font-medium">Amostra de dados:</span> {getFirstDataRowPreview(file)}
+                          <span className="font-medium">Amostra de dados:</span> {file.processedPreview}
                         </p>
                       )}
                     </div>

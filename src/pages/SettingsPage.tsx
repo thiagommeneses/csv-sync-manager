@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lightbulb, MessageSquare, AlertTriangle, TrashIcon, Download } from "lucide-react";
+import { Lightbulb, MessageSquare, AlertTriangle, TrashIcon, Download, Trash2, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { clearRecentFiles, getCurrentFile, saveCurrentFile } from "@/utils/csvUtils";
+import { clearAllExportHistory } from "@/services/exportHistory";
 
 // Define the structure of an error log entry
 interface ErrorLog {
@@ -38,6 +40,7 @@ const SettingsPage = () => {
   const [errorLogs, setErrorLogs] = useState<ErrorLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<ErrorLog | null>(null);
   const [showLogDetails, setShowLogDetails] = useState(false);
+  const [showClearDataDialog, setShowClearDataDialog] = useState(false);
   
   // Load error logs from localStorage on component mount
   useEffect(() => {
@@ -93,6 +96,33 @@ const SettingsPage = () => {
     URL.revokeObjectURL(url);
     
     toast.success("Logs baixados com sucesso.");
+  };
+  
+  const handleClearAllData = async () => {
+    try {
+      // Clear current file
+      saveCurrentFile(null);
+      
+      // Clear all recent files from localStorage
+      clearRecentFiles();
+      
+      // Clear logs
+      localStorage.removeItem('csv-sync-error-logs');
+      setErrorLogs([]);
+      
+      // Clear export history from database
+      await clearAllExportHistory();
+      
+      // Clear any other app-specific data
+      localStorage.removeItem('csv-sync-settings');
+      localStorage.removeItem('csv-sync-filters');
+      
+      toast.success("Todos os dados do aplicativo foram removidos com sucesso.");
+      setShowClearDataDialog(false);
+    } catch (error) {
+      console.error("Erro ao limpar dados:", error);
+      toast.error("Ocorreu um erro ao tentar limpar os dados.");
+    }
   };
   
   // For testing purposes - add some sample logs
@@ -292,6 +322,66 @@ const SettingsPage = () => {
                   </div>
                 </div>
               )}
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
+      
+      {/* Clear All Data Card */}
+      <Card className="border-red-100 dark:border-red-900">
+        <CardHeader className="bg-red-50 dark:bg-red-900/30 rounded-t-lg">
+          <CardTitle className="flex items-center gap-2">
+            <Trash2 className="h-5 w-5 text-red-500" />
+            Limpar Dados da Aplicação
+          </CardTitle>
+          <CardDescription>
+            Apagar todo o histórico, cache e arquivos enviados
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Esta opção removerá todos os dados armazenados localmente pelo aplicativo, incluindo:
+          </p>
+          <ul className="list-disc pl-5 mb-4 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+            <li>Histórico de arquivos recentes</li>
+            <li>Registros de logs e alertas</li>
+            <li>Histórico de exportações</li>
+            <li>Arquivo atual aberto</li>
+            <li>Configurações e preferências salvas</li>
+          </ul>
+          
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-red-500 font-medium">Esta ação não pode ser desfeita.</p>
+            <Button 
+              variant="destructive" 
+              onClick={() => setShowClearDataDialog(true)}
+              className="flex items-center gap-1"
+            >
+              <Database className="h-4 w-4" />
+              Limpar Todos os Dados
+            </Button>
+          </div>
+          
+          <Dialog open={showClearDataDialog} onOpenChange={setShowClearDataDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Limpar todos os dados</DialogTitle>
+                <DialogDescription>
+                  Tem certeza que deseja remover todos os dados da aplicação? Esta ação não pode ser desfeita.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="flex justify-end space-x-2">
+                <DialogClose asChild>
+                  <Button variant="outline">Cancelar</Button>
+                </DialogClose>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleClearAllData}
+                >
+                  Limpar Todos os Dados
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
         </CardContent>
