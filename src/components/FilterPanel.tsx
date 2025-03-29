@@ -152,7 +152,8 @@ const FilterPanel = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os templates</SelectItem>
-                  <SelectItem value="empty">Templates vazios</SelectItem>
+                  <SelectItem value="noTemplate">Templates vazios</SelectItem>
+                  <SelectItem value="withTemplate">Templates preenchidos</SelectItem>
                   <SelectItem value="custom">Template personalizado</SelectItem>
                 </SelectContent>
               </Select>
@@ -188,6 +189,7 @@ const FilterPanel = ({
                 <SelectContent>
                   <SelectItem value="all">Todas as mensagens</SelectItem>
                   <SelectItem value="empty">Mensagens vazias</SelectItem>
+                  <SelectItem value="withContent">Mensagens com conteúdo</SelectItem>
                   <SelectItem value="custom">Texto personalizado</SelectItem>
                 </SelectContent>
               </Select>

@@ -31,9 +31,11 @@ import {
   validateCSVDataAdvanced,
   getRecentFiles, 
   loadSavedCSVData,
+  saveRecentFile,
   RecentFile
 } from "@/utils/csvUtils";
 import { useToast } from "@/components/ui/use-toast";
+import { saveImportHistory } from "@/services/exportHistory";
 
 const emptyCSVData: CSVData = {
   headers: [],
@@ -110,6 +112,11 @@ const HomePage = () => {
       
       setFilters({...defaultFilters, showOnlyMainColumns: true});
       setIsLoading(false);
+      
+      const fileName = "Arquivo importado " + new Date().toLocaleString();
+      saveRecentFile(data, fileName);
+      
+      saveImportHistory(fileName, data.totalRows, data.rawData.length);
       
       toast({
         title: "Arquivo carregado com sucesso",

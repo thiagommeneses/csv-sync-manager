@@ -1,4 +1,3 @@
-
 import Papa from 'papaparse';
 
 export interface RecentFile {
@@ -411,7 +410,7 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
       filteredRows = filteredRows.filter(row => row[messageIndex].trim() === '');
     } else if (filters.messages === 'custom') {
       if (filters.customMessageFilter) {
-        filteredRows = filteredRows.filter(row => row[messageIndex].trim().includes(filters.customMessageFilter));
+        filteredRows = filteredRows.filter(row => row[messageIndex].toLowerCase().includes(filters.customMessageFilter.toLowerCase()));
       }
     }
   }
@@ -424,7 +423,11 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
       filteredRows = filteredRows.filter(row => row[templateIndex].trim() === '');
     } else if (filters.templates === 'custom') {
       if (filters.customTemplateFilter) {
-        filteredRows = filteredRows.filter(row => row[templateIndex].trim().includes(filters.customTemplateFilter));
+        const terms = filters.customTemplateFilter.toLowerCase().split(' ').filter(Boolean);
+        filteredRows = filteredRows.filter(row => {
+          const templateText = row[templateIndex].toLowerCase();
+          return terms.every(term => templateText.includes(term));
+        });
       }
     }
   }

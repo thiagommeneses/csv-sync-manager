@@ -93,9 +93,9 @@ const ExportHistoryPage = () => {
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Histórico de Exportações</h1>
+          <h1 className="text-2xl font-bold">Histórico de Operações</h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Histórico completo de arquivos CSV exportados
+            Histórico de arquivos CSV importados e exportados
           </p>
         </div>
         
@@ -144,14 +144,14 @@ const ExportHistoryPage = () => {
         </div>
       ) : (
         <Table>
-          <TableCaption>Histórico de todas as exportações</TableCaption>
+          <TableCaption>Histórico de importações e exportações</TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead>Nome do Arquivo</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Registros</TableHead>
               <TableHead>Tamanho</TableHead>
-              <TableHead>Data de Exportação</TableHead>
+              <TableHead>Data da Operação</TableHead>
               <TableHead>Agendado para</TableHead>
               <TableHead>Tema</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -161,7 +161,7 @@ const ExportHistoryPage = () => {
             {history.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                  Nenhum registro de exportação encontrado
+                  Nenhum registro encontrado
                 </TableCell>
               </TableRow>
             ) : (
@@ -174,9 +174,15 @@ const ExportHistoryPage = () => {
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                       record.type === 'omnichat' 
                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' 
-                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100'
+                        : record.type === 'zenvia'
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100'
+                          : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100'
                     }`}>
-                      {record.type === 'omnichat' ? 'OmniChat' : 'Zenvia'}
+                      {record.type === 'omnichat' 
+                        ? 'OmniChat' 
+                        : record.type === 'zenvia' 
+                          ? 'Zenvia' 
+                          : 'Importação'}
                     </span>
                   </TableCell>
                   <TableCell>{record.row_count}</TableCell>
