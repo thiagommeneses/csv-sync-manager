@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { 
   FileText, 
   Upload, 
-  Database, 
+  History, 
   Settings, 
   Home, 
   HelpCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Download
 } from "lucide-react";
 
 interface SidebarProps {
@@ -21,12 +22,12 @@ interface SidebarProps {
 
 const Sidebar = ({ isOpen, toggleSidebar, activePage, setActivePage }: SidebarProps) => {
   const menuItems = [
-    { id: "home", label: "Dashboard", icon: Home },
-    { id: "upload", label: "Upload CSV", icon: Upload },
-    { id: "manage", label: "Manage Files", icon: FileText },
-    { id: "backups", label: "Backups", icon: Database },
-    { id: "settings", label: "Settings", icon: Settings },
-    { id: "help", label: "Help & Docs", icon: HelpCircle },
+    { id: "home", label: "Início", icon: Home },
+    { id: "upload", label: "Importar CSV", icon: Upload },
+    { id: "history", label: "Histórico", icon: History },
+    { id: "export", label: "Exportar", icon: Download },
+    { id: "help", label: "Ajuda", icon: HelpCircle },
+    { id: "settings", label: "Configurações", icon: Settings },
   ];
 
   return (
@@ -71,7 +72,7 @@ const Sidebar = ({ isOpen, toggleSidebar, activePage, setActivePage }: SidebarPr
           {isOpen && (
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                CSV Sync Manager v1.0
+                CSV Sync Manager v1.2
               </p>
             </div>
           )}

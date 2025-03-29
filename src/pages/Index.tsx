@@ -22,6 +22,14 @@ const Index = () => {
         return <HelpPage />;
       case "history":
         return <ExportHistoryPage />;
+      case "upload":
+        return <HomePage />;
+      case "export":
+        // This will just show the home page where export options are available
+        return <HomePage />;
+      case "settings":
+        // Will implement settings page in future iterations
+        return <HelpPage />;
       default:
         return <HomePage />;
     }

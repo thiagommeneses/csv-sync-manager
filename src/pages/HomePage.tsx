@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   AlertDialog,
@@ -70,12 +71,16 @@ const HomePage = () => {
   const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
   const [partsCount, setPartsCount] = useState(2);
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
-  const [showRecentFiles, setShowRecentFiles] = useState(false);
+  const [showRecentFiles, setShowRecentFiles] = useState(true);
   
-  useState(() => {
+  useEffect(() => {
+    loadRecentFiles();
+  }, []);
+  
+  const loadRecentFiles = () => {
     const files = getRecentFiles();
     setRecentFiles(files);
-  });
+  };
   
   const handleFileUploaded = (data: CSVData) => {
     setIsLoading(true);
@@ -111,8 +116,7 @@ const HomePage = () => {
         description: `${data.totalRows} registros encontrados.`,
       });
       
-      const files = getRecentFiles();
-      setRecentFiles(files);
+      loadRecentFiles();
     }, 500);
   };
   
@@ -316,12 +320,7 @@ const HomePage = () => {
           
           <AlertDialog 
             open={isSplitDialogOpen} 
-            onOpenChange={(open) => {
-              if (!open) {
-              } else {
-                setIsSplitDialogOpen(true);
-              }
-            }}
+            onOpenChange={setIsSplitDialogOpen}
           >
             <AlertDialogContent>
               <AlertDialogHeader>

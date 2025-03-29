@@ -225,10 +225,8 @@ export const exportToOmniChat = (data: CSVData, fileName?: string): string => {
     return [phone];
   });
   
-  // Adicionamos o BOM UTF-8 no início do CSV para garantir que o Notepad reconheça o arquivo como UTF-8
-  const bom = '\ufeff';
-  const csvContent = convertToCSVString(newHeaders, newRows, ',');
-  return bom + csvContent;
+  // Remove BOM and use pure CSV format
+  return convertToCSVString(newHeaders, newRows, ',');
 };
 
 export const exportToZenvia = (data: CSVData, smsText: string, delimiter: string = ';'): string => {
@@ -246,10 +244,8 @@ export const exportToZenvia = (data: CSVData, smsText: string, delimiter: string
     return [phone, smsText];
   });
   
-  // Adicionamos o BOM UTF-8 no início do CSV para garantir que o Notepad reconheça o arquivo como UTF-8
-  const bom = '\ufeff';
-  const csvContent = convertToCSVString(newHeaders, newRows, delimiter);
-  return bom + csvContent;
+  // Remove BOM and use pure CSV format
+  return convertToCSVString(newHeaders, newRows, delimiter);
 };
 
 export const convertToCSVString = (headers: string[], rows: string[][], delimiter: string = ','): string => {
