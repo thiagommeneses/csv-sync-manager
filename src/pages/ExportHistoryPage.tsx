@@ -1,10 +1,10 @@
 
 import { useState, useEffect } from "react";
-import { getExportHistory, ExportRecord, deleteExportRecord } from "@/services/exportHistory";
+import { getExportHistory, ExportRecord, deleteExportRecord, clearAllExportHistory } from "@/services/exportHistory";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Trash2, RefreshCw, ExternalLink } from "lucide-react";
+import { Trash2, RefreshCw, ExternalLink, Eraser } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
@@ -14,6 +14,7 @@ const ExportHistoryPage = () => {
   const [history, setHistory] = useState<ExportRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
 
   const loadHistory = async () => {
     setLoading(true);
@@ -47,12 +48,44 @@ const ExportHistoryPage = () => {
     setDeletingId(null);
   };
 
+  const handleClearAll = async () => {
+    const success = await clearAllExportHistory();
+    
+    if (success) {
+      setHistory([]);
+      toast({
+        title: "Histórico limpo",
+        description: "Todos os registros foram excluídos com sucesso.",
+      });
+    } else {
+      toast({
+        title: "Erro ao limpar histórico",
+        description: "Ocorreu um erro ao limpar o histórico. Por favor, tente novamente.",
+        variant: "destructive",
+      });
+    }
+    
+    setIsConfirmClearOpen(false);
+  };
+
   const formatDateTime = (dateString: string) => {
     try {
       const date = new Date(dateString);
       return format(date, "dd/MM/yyyy HH:mm");
     } catch (e) {
       return dateString;
+    }
+  };
+
+  const formatFileSize = (sizeInBytes?: number) => {
+    if (!sizeInBytes) return "-";
+    
+    if (sizeInBytes < 1024) {
+      return `${sizeInBytes} B`;
+    } else if (sizeInBytes < 1024 * 1024) {
+      return `${(sizeInBytes / 1024).toFixed(2)} KB`;
+    } else {
+      return `${(sizeInBytes / (1024 * 1024)).toFixed(2)} MB`;
     }
   };
 
@@ -66,10 +99,39 @@ const ExportHistoryPage = () => {
           </p>
         </div>
         
-        <Button onClick={loadHistory} variant="outline" size="sm" className="space-x-1">
-          <RefreshCw className="h-4 w-4 mr-1" />
-          <span>Atualizar</span>
-        </Button>
+        <div className="flex space-x-2">
+          <Button onClick={loadHistory} variant="outline" size="sm" className="space-x-1">
+            <RefreshCw className="h-4 w-4 mr-1" />
+            <span>Atualizar</span>
+          </Button>
+          
+          <AlertDialog open={isConfirmClearOpen} onOpenChange={setIsConfirmClearOpen}>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" className="space-x-1">
+                <Eraser className="h-4 w-4 mr-1" />
+                <span>Limpar Histórico</span>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Limpar todo o histórico</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Você tem certeza que deseja excluir todo o histórico de exportações?
+                  Esta ação não pode ser desfeita e todos os registros serão perdidos.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleClearAll}
+                  className="bg-red-500 hover:bg-red-600"
+                >
+                  Sim, limpar tudo
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
       
       {loading ? (
@@ -88,6 +150,7 @@ const ExportHistoryPage = () => {
               <TableHead>Nome do Arquivo</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Registros</TableHead>
+              <TableHead>Tamanho</TableHead>
               <TableHead>Data de Exportação</TableHead>
               <TableHead>Agendado para</TableHead>
               <TableHead>Tema</TableHead>
@@ -97,7 +160,7 @@ const ExportHistoryPage = () => {
           <TableBody>
             {history.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                   Nenhum registro de exportação encontrado
                 </TableCell>
               </TableRow>
@@ -117,6 +180,7 @@ const ExportHistoryPage = () => {
                     </span>
                   </TableCell>
                   <TableCell>{record.row_count}</TableCell>
+                  <TableCell>{formatFileSize(record.file_size)}</TableCell>
                   <TableCell>{formatDateTime(record.exported_at)}</TableCell>
                   <TableCell>{record.scheduled_for ? formatDateTime(record.scheduled_for) : '-'}</TableCell>
                   <TableCell>{record.theme || '-'}</TableCell>

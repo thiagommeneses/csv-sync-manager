@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -30,6 +29,7 @@ import {
   splitCSVFile,
   validateCSVDataAdvanced,
   getRecentFiles, 
+  loadSavedCSVData,
   RecentFile
 } from "@/utils/csvUtils";
 import { useToast } from "@/components/ui/use-toast";
@@ -118,6 +118,40 @@ const HomePage = () => {
       
       loadRecentFiles();
     }, 500);
+  };
+
+  const handleRecentFileSelect = async (file: RecentFile) => {
+    setIsLoading(true);
+    
+    try {
+      const data = await loadSavedCSVData(file.id);
+      if (data) {
+        setOriginalCSVData(data);
+        setFilteredCSVData(data);
+        setStats(analyzeCSV(data));
+        setFilters({...defaultFilters, showOnlyMainColumns: true});
+        
+        toast({
+          title: "Arquivo carregado com sucesso",
+          description: `${file.name} com ${data.totalRows} registros.`,
+        });
+      } else {
+        toast({
+          title: "Erro ao carregar arquivo",
+          description: "Não foi possível carregar os dados do arquivo selecionado.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao carregar arquivo recente:", error);
+      toast({
+        title: "Erro ao carregar arquivo",
+        description: "Ocorreu um erro ao tentar carregar o arquivo selecionado.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleFiltersChange = (newFilters: FilterOptions) => {
@@ -222,7 +256,7 @@ const HomePage = () => {
     <div className="space-y-6 p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">CSV Sync Manager</h1>
+          <h1 className="text-2xl font-bold">CSV Sync Manager v1.2</h1>
           <p className="text-gray-500 dark:text-gray-400">
             Upload, gerenciamento e exportação de CSV para OmniChat e Zenvia
           </p>
@@ -281,7 +315,10 @@ const HomePage = () => {
                 </Button>
                 
                 {showRecentFiles && (
-                  <RecentFilesPanel files={recentFiles} />
+                  <RecentFilesPanel 
+                    files={recentFiles} 
+                    onFileSelect={handleRecentFileSelect}
+                  />
                 )}
               </div>
             )}

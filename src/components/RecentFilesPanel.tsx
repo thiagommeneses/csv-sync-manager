@@ -5,9 +5,10 @@ import { RecentFile } from "@/utils/csvUtils";
 
 interface RecentFilesPanelProps {
   files: RecentFile[];
+  onFileSelect: (file: RecentFile) => void;
 }
 
-const RecentFilesPanel = ({ files }: RecentFilesPanelProps) => {
+const RecentFilesPanel = ({ files, onFileSelect }: RecentFilesPanelProps) => {
   // Formatar a data para exibição
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -37,7 +38,9 @@ const RecentFilesPanel = ({ files }: RecentFilesPanelProps) => {
               {files.map((file) => (
                 <div 
                   key={file.id}
-                  className="flex items-start gap-3 p-2 text-sm border rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="flex items-start gap-3 p-2 text-sm border rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                  onClick={() => onFileSelect(file)}
+                  title="Clique para usar este arquivo"
                 >
                   <FileText className="h-5 w-5 text-blue-500 flex-shrink-0 mt-1" />
                   <div className="overflow-hidden">

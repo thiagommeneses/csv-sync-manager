@@ -8,6 +8,7 @@ export interface ExportRecord {
   type: 'omnichat' | 'zenvia';
   exported_at: string;
   row_count: number;
+  file_size?: number;
   theme?: string | null;
   scheduled_for?: string | null;
 }
@@ -80,6 +81,25 @@ export const deleteExportRecord = async (id: string): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Erro ao excluir registro de exportação:', error);
+    return false;
+  }
+};
+
+export const clearAllExportHistory = async (): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('export_history')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // This deletes all records
+      
+    if (error) {
+      console.error('Erro ao limpar histórico de exportação:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao limpar histórico de exportação:', error);
     return false;
   }
 };
