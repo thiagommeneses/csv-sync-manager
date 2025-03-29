@@ -1,9 +1,8 @@
-
 import { CSVData, CSVStats, FilterOptions, CSVValidation, RecentFile } from "@/types/csv";
 import Papa from "papaparse";
 
 // Function to validate if a phone number is valid
-const isValidPhoneNumber = (phone: string): boolean => {
+export const isValidPhoneNumber = (phone: string): boolean => {
   // Remove non-digit characters
   const cleanedPhone = phone.replace(/\D/g, '');
   
@@ -64,7 +63,6 @@ export const analyzeCSV = (data: CSVData): CSVStats => {
   };
 };
 
-// Parse CSV function
 export const parseCSV = (csvText: string): CSVData => {
   const parsedData = Papa.parse(csvText, { 
     header: true,
@@ -84,7 +82,6 @@ export const parseCSV = (csvText: string): CSVData => {
   };
 };
 
-// Validate CSV structure to ensure it has the required columns
 export const validateCSVStructure = (data: CSVData): boolean => {
   const hasPhone = data.headers.some(header => 
     header.toLowerCase().includes('phone') || header.toLowerCase().includes('telefone')
@@ -101,7 +98,6 @@ export const validateCSVStructure = (data: CSVData): boolean => {
   return hasPhone && (hasTemplate || hasMessage);
 };
 
-// More advanced validation with detailed issues reporting
 export const validateCSVDataAdvanced = (data: CSVData): CSVValidation => {
   const issues: string[] = [];
   
@@ -147,7 +143,6 @@ export const validateCSVDataAdvanced = (data: CSVData): CSVValidation => {
   };
 };
 
-// Apply filters to CSV data
 export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => {
   let filteredRows = [...data.rows];
   let stats: CSVStats = {
@@ -299,7 +294,6 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
   return result;
 };
 
-// Split CSV file into multiple parts
 export const splitCSVFile = (data: CSVData, rowsPerPart: number): CSVData[] => {
   const parts: CSVData[] = [];
   
@@ -317,7 +311,6 @@ export const splitCSVFile = (data: CSVData, rowsPerPart: number): CSVData[] => {
   return parts;
 };
 
-// Export to OmniChat format
 export const exportToOmniChat = (data: CSVData): string => {
   // Find phone column index
   const phoneIndex = data.headers.findIndex(h => 
@@ -350,7 +343,6 @@ export const exportToOmniChat = (data: CSVData): string => {
   return csvRows.join('\n');
 };
 
-// Export to Zenvia format
 export const exportToZenvia = (data: CSVData, smsText: string, delimiter: string = ','): string => {
   // Find phone column index
   const phoneIndex = data.headers.findIndex(h => 
@@ -383,7 +375,6 @@ export const exportToZenvia = (data: CSVData, smsText: string, delimiter: string
   return csvRows.join('\n');
 };
 
-// Generate file name based on export parameters
 export const generateFileName = (channel: string, date: Date, theme?: string): string => {
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
@@ -407,11 +398,9 @@ export const generateFileName = (channel: string, date: Date, theme?: string): s
   return `V4-MKT_${channel.toUpperCase()}_DISPARO_${dateStr}_${timeStr}${themeStr}_GERADO-${currentDate}_${currentTime}.csv`;
 };
 
-// Recent files storage
 const RECENT_FILES_KEY = 'csv-manager-recent-files';
 const MAX_RECENT_FILES = 10;
 
-// Save a CSV file to recent files
 export const saveRecentFile = (data: CSVData, name: string): RecentFile => {
   const files = getRecentFiles();
   
@@ -444,7 +433,6 @@ export const saveRecentFile = (data: CSVData, name: string): RecentFile => {
   return newFile;
 };
 
-// Get list of recent files
 export const getRecentFiles = (): RecentFile[] => {
   try {
     const filesJson = localStorage.getItem(RECENT_FILES_KEY);
@@ -458,7 +446,6 @@ export const getRecentFiles = (): RecentFile[] => {
   }
 };
 
-// Load saved CSV data
 export const loadSavedCSVData = async (fileId: string): Promise<CSVData | null> => {
   const files = getRecentFiles();
   const file = files.find(f => f.id === fileId);
@@ -474,3 +461,5 @@ export const loadSavedCSVData = async (fileId: string): Promise<CSVData | null> 
     return null;
   }
 };
+
+export type { RecentFile };
