@@ -19,7 +19,7 @@ interface DatePickerProps {
   disabled?: boolean;
 }
 
-export function DatePicker({ date, onSelect, className, disabled }: DatePickerProps) {
+export function DatePicker({ date, onSelect, className, disabled = false }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
 
   const handleSelect = (selectedDate: Date | undefined) => {
