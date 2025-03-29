@@ -70,6 +70,7 @@ export interface RecentFile {
   preview?: string;
   content?: string;
   originalFilename?: string;
+  processedPreview?: string; // Add this property
 }
 
 export type FileSplitOptions = {
