@@ -1,3 +1,4 @@
+
 import Papa from 'papaparse';
 
 export interface RecentFile {
@@ -5,6 +6,7 @@ export interface RecentFile {
   name: string;
   date: string;
   rows: number;
+  size?: number; // Made size optional to match the type in types/csv.ts
   preview?: string;
   content?: string; // Added to store the full file content for quick loading
 }
@@ -62,11 +64,15 @@ export const saveRecentFile = (data: CSVData, fileName: string) => {
       }
     }
     
+    // Calculate file size in bytes (approximate)
+    const size = data.rawData.length;
+    
     const newFile: RecentFile = {
       id: Date.now().toString(),
       name: fileName,
       date: new Date().toISOString(),
       rows: data.totalRows,
+      size, // Add file size information
       preview,
       content: data.rawData // Store the raw CSV content
     };

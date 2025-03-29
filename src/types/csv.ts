@@ -67,8 +67,9 @@ export interface RecentFile {
   name: string;
   date: string;
   rows: number;
-  preview: string;
-  content?: string; // Added to match csvUtils definition
+  size?: number; // Added size property as optional
+  preview?: string;
+  content?: string;
 }
 
 export type FileSplitOptions = {

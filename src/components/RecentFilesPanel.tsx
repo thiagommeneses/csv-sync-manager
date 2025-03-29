@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Calendar, Table, HardDrive } from "lucide-react";
-import { RecentFile } from "@/utils/csvUtils";
+import { RecentFile } from "@/types/csv";
 
 interface RecentFilesPanelProps {
   files: RecentFile[];
