@@ -32,7 +32,8 @@ import {
   getRecentFiles, 
   loadSavedCSVData,
   saveRecentFile,
-  RecentFile
+  RecentFile,
+  isEmpty
 } from "@/utils/csvUtils";
 import { useToast } from "@/components/ui/use-toast";
 import { saveImportHistory } from "@/services/exportHistory";
@@ -166,7 +167,28 @@ const HomePage = () => {
     setIsLoading(true);
     
     setTimeout(() => {
+      console.log("Applying filters:", newFilters);
       const filtered = applyFilters(originalCSVData, newFilters);
+      console.log("Filtered results:", filtered.rows.length, "rows");
+      
+      // Debug information about message filter
+      if (newFilters.messages === 'empty') {
+        const messageIndex = originalCSVData.headers.findIndex(h => 
+          h.toLowerCase().includes('message') || h.toLowerCase().includes('mensagem') ||
+          h.toLowerCase().includes('reply_message_text')
+        );
+        
+        if (messageIndex >= 0) {
+          const emptyCount = originalCSVData.rows.filter(row => 
+            row.length <= messageIndex || isEmpty(row[messageIndex])
+          ).length;
+          
+          console.log(`Found ${emptyCount} rows with empty messages`, 
+            `Message index: ${messageIndex}`, 
+            `Headers: ${originalCSVData.headers.join(', ')}`);
+        }
+      }
+      
       setFilteredCSVData(filtered);
       
       if ((filtered as any).stats) {

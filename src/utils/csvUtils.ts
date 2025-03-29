@@ -1,3 +1,4 @@
+
 import { CSVData, CSVStats, FilterOptions, CSVValidation, RecentFile } from "@/types/csv";
 import Papa from "papaparse";
 
@@ -9,6 +10,13 @@ export const isValidPhoneNumber = (phone: string): boolean => {
   // Check if it's a valid phone number (basic validation)
   // Brazilian numbers typically have 10-11 digits (including area code)
   return cleanedPhone.length >= 10 && cleanedPhone.length <= 13;
+};
+
+// Check if a value is empty considering null, undefined, or whitespace
+export const isEmpty = (value: any): boolean => {
+  if (value === null || value === undefined) return true;
+  if (typeof value === 'string') return value.trim() === '';
+  return false;
 };
 
 export const analyzeCSV = (data: CSVData): CSVStats => {
@@ -43,11 +51,7 @@ export const analyzeCSV = (data: CSVData): CSVStats => {
       
       if (messageIndex >= 0 && row.length > messageIndex) {
         // Check if message is empty, null, undefined or just whitespace
-        const messageText = row[messageIndex] === null || row[messageIndex] === undefined 
-          ? '' 
-          : row[messageIndex].trim();
-        
-        if (messageText === '') {
+        if (isEmpty(row[messageIndex])) {
           emptyMessages++;
         }
       }
@@ -211,26 +215,26 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
     }
   }
   
-  // Filter by message content
+  // Filter by message content - FIX FOR MESSAGE FILTERING
   if (messageIndex >= 0) {
     if (filters.messages === 'empty') {
       filteredRows = filteredRows.filter(row => {
-        const message = row[messageIndex] === undefined || row[messageIndex] === null
-          ? ''
-          : row[messageIndex].trim();
-        return message === '';
+        // Handle case where message column might not exist or be out of bounds
+        if (row.length <= messageIndex) return true;
+        return isEmpty(row[messageIndex]);
       });
     } else if (filters.messages === 'withContent') {
       filteredRows = filteredRows.filter(row => {
-        const message = row[messageIndex] === undefined || row[messageIndex] === null
-          ? ''
-          : row[messageIndex].trim();
-        return message !== '';
+        // Handle case where message column might not exist or be out of bounds
+        if (row.length <= messageIndex) return false;
+        return !isEmpty(row[messageIndex]);
       });
     } else if (filters.messages === 'custom' && filters.customMessageFilter) {
       const searchTerms = filters.customMessageFilter.toLowerCase().split(' ').filter(term => term.trim() !== '');
       
       filteredRows = filteredRows.filter(row => {
+        // Handle case where message column might not exist or be out of bounds
+        if (row.length <= messageIndex) return false;
         const message = (row[messageIndex] || '').toLowerCase();
         return searchTerms.every(term => message.includes(term));
       });
@@ -241,11 +245,11 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
   if (templateIndex >= 0) {
     if (filters.templates === 'noTemplate') {
       filteredRows = filteredRows.filter(row => 
-        !row[templateIndex] || row[templateIndex].trim() === ''
+        isEmpty(row[templateIndex])
       );
     } else if (filters.templates === 'withTemplate') {
       filteredRows = filteredRows.filter(row => 
-        row[templateIndex] && row[templateIndex].trim() !== ''
+        !isEmpty(row[templateIndex])
       );
     } else if (filters.templates === 'custom' && filters.customTemplateFilter) {
       const searchTerms = filters.customTemplateFilter.toLowerCase().split(' ').filter(term => term.trim() !== '');
@@ -272,10 +276,7 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
   // Count empty messages in filtered data
   if (messageIndex >= 0) {
     filteredRows.forEach(row => {
-      const message = row[messageIndex] === undefined || row[messageIndex] === null
-        ? ''
-        : row[messageIndex].trim();
-      if (message === '') {
+      if (row.length > messageIndex && isEmpty(row[messageIndex])) {
         stats.emptyMessages++;
       }
     });

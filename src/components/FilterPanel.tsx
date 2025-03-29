@@ -22,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { FilterX, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { FilterOptions } from "@/types/csv";
 import { CSVStats } from "@/types/csv";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface FilterPanelProps {
   stats: CSVStats;
@@ -68,6 +69,140 @@ const FilterPanel = ({
     onResetFilters();
   };
 
+  // Render statistics section
+  const renderStats = () => (
+    <div className="space-y-2">
+      <div className="font-medium text-sm">Informações Úteis</div>
+      <ul className="space-y-1 text-sm">
+        <li className="flex justify-between">
+          <span className="text-gray-500 dark:text-gray-400">Total de Registros:</span>
+          <span className="font-medium">{stats.totalRecords}</span>
+        </li>
+        <li className="flex justify-between">
+          <span className="text-gray-500 dark:text-gray-400">Números Válidos:</span>
+          <span className="font-medium">{stats.validPhoneNumbers}</span>
+        </li>
+        <li className="flex justify-between">
+          <span className="text-gray-500 dark:text-gray-400">Números Duplicados:</span>
+          <span className="font-medium">{stats.duplicatePhoneNumbers}</span>
+        </li>
+        {localFilters.phoneNumbers.fixFormat && (
+          <li className="flex justify-between">
+            <span className="text-gray-500 dark:text-gray-400">Números Corrigidos:</span>
+            <span className="font-medium">{stats.correctedPhoneNumbers || 0}</span>
+          </li>
+        )}
+        <li className="flex justify-between">
+          <span className="text-gray-500 dark:text-gray-400">Mensagens Vazias:</span>
+          <span className="font-medium">{stats.emptyMessages}</span>
+        </li>
+      </ul>
+    </div>
+  );
+
+  // Render phone number filters
+  const renderPhoneFilters = () => (
+    <div className="space-y-4">
+      <Label>Filtro de Números de Telefone</Label>
+      <div className="space-y-2">
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="removeDuplicates" 
+            checked={localFilters.phoneNumbers.removeDuplicates}
+            onCheckedChange={(checked) => 
+              handlePhoneFilterChange('removeDuplicates', checked as boolean)
+            }
+          />
+          <Label htmlFor="removeDuplicates" className="cursor-pointer">
+            Remover duplicados
+          </Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="fixFormat" 
+            checked={localFilters.phoneNumbers.fixFormat}
+            onCheckedChange={(checked) => 
+              handlePhoneFilterChange('fixFormat', checked as boolean)
+            }
+          />
+          <Label htmlFor="fixFormat" className="cursor-pointer">
+            Corrigir formato dos números
+          </Label>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Render template filters
+  const renderTemplateFilters = () => (
+    <div className="space-y-2">
+      <Label htmlFor="template-filter">Filtro de Templates</Label>
+      <Select 
+        value={localFilters.templates} 
+        onValueChange={(value) => handleFilterChange('templates', value)}
+      >
+        <SelectTrigger id="template-filter">
+          <SelectValue placeholder="Selecione o filtro" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos os templates</SelectItem>
+          <SelectItem value="noTemplate">Templates vazios</SelectItem>
+          <SelectItem value="withTemplate">Templates preenchidos</SelectItem>
+          <SelectItem value="custom">Template personalizado</SelectItem>
+        </SelectContent>
+      </Select>
+      
+      {localFilters.templates === 'custom' && (
+        <div className="mt-2 space-y-1">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Digite termos de busca..."
+              className="pl-8"
+              value={localFilters.customTemplateFilter || ''}
+              onChange={(e) => handleFilterChange('customTemplateFilter', e.target.value)}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Digite várias palavras para buscar templates que contenham todos os termos.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+
+  // Render message filters
+  const renderMessageFilters = () => (
+    <div className="space-y-2">
+      <Label htmlFor="message-filter">Filtro de Mensagens</Label>
+      <Select 
+        value={localFilters.messages} 
+        onValueChange={(value) => handleFilterChange('messages', value)}
+      >
+        <SelectTrigger id="message-filter">
+          <SelectValue placeholder="Selecione o filtro" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todas as mensagens</SelectItem>
+          <SelectItem value="empty">Mensagens vazias</SelectItem>
+          <SelectItem value="withContent">Mensagens com conteúdo</SelectItem>
+          <SelectItem value="custom">Texto personalizado</SelectItem>
+        </SelectContent>
+      </Select>
+      
+      {localFilters.messages === 'custom' && (
+        <Input
+          type="text"
+          placeholder="Filtrar por texto..."
+          className="mt-2"
+          value={localFilters.customMessageFilter || ''}
+          onChange={(e) => handleFilterChange('customMessageFilter', e.target.value)}
+        />
+      )}
+    </div>
+  );
+
   return (
     <Card className="mb-6">
       <CardHeader className="py-4 flex flex-row items-center justify-between cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
@@ -83,127 +218,10 @@ const FilterPanel = ({
       {isExpanded && (
         <CardContent className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
-              <div className="font-medium text-sm">Informações Úteis</div>
-              <ul className="space-y-1 text-sm">
-                <li className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Total de Registros:</span>
-                  <span className="font-medium">{stats.totalRecords}</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Números Válidos:</span>
-                  <span className="font-medium">{stats.validPhoneNumbers}</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Números Duplicados:</span>
-                  <span className="font-medium">{stats.duplicatePhoneNumbers}</span>
-                </li>
-                {localFilters.phoneNumbers.fixFormat && (
-                  <li className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Números Corrigidos:</span>
-                    <span className="font-medium">{stats.correctedPhoneNumbers || 0}</span>
-                  </li>
-                )}
-                <li className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Mensagens Vazias:</span>
-                  <span className="font-medium">{stats.emptyMessages}</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-4">
-              <Label>Filtro de Números de Telefone</Label>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="removeDuplicates" 
-                    checked={localFilters.phoneNumbers.removeDuplicates}
-                    onCheckedChange={(checked) => 
-                      handlePhoneFilterChange('removeDuplicates', checked as boolean)
-                    }
-                  />
-                  <Label htmlFor="removeDuplicates" className="cursor-pointer">
-                    Remover duplicados
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="fixFormat" 
-                    checked={localFilters.phoneNumbers.fixFormat}
-                    onCheckedChange={(checked) => 
-                      handlePhoneFilterChange('fixFormat', checked as boolean)
-                    }
-                  />
-                  <Label htmlFor="fixFormat" className="cursor-pointer">
-                    Corrigir formato dos números
-                  </Label>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="template-filter">Filtro de Templates</Label>
-              <Select 
-                value={localFilters.templates} 
-                onValueChange={(value) => handleFilterChange('templates', value)}
-              >
-                <SelectTrigger id="template-filter">
-                  <SelectValue placeholder="Selecione o filtro" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os templates</SelectItem>
-                  <SelectItem value="noTemplate">Templates vazios</SelectItem>
-                  <SelectItem value="withTemplate">Templates preenchidos</SelectItem>
-                  <SelectItem value="custom">Template personalizado</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {localFilters.templates === 'custom' && (
-                <div className="mt-2 space-y-1">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      placeholder="Digite termos de busca..."
-                      className="pl-8"
-                      value={localFilters.customTemplateFilter || ''}
-                      onChange={(e) => handleFilterChange('customTemplateFilter', e.target.value)}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Digite várias palavras para buscar templates que contenham todos os termos.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="message-filter">Filtro de Mensagens</Label>
-              <Select 
-                value={localFilters.messages} 
-                onValueChange={(value) => handleFilterChange('messages', value)}
-              >
-                <SelectTrigger id="message-filter">
-                  <SelectValue placeholder="Selecione o filtro" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as mensagens</SelectItem>
-                  <SelectItem value="empty">Mensagens vazias</SelectItem>
-                  <SelectItem value="withContent">Mensagens com conteúdo</SelectItem>
-                  <SelectItem value="custom">Texto personalizado</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {localFilters.messages === 'custom' && (
-                <Input
-                  type="text"
-                  placeholder="Filtrar por texto..."
-                  className="mt-2"
-                  value={localFilters.customMessageFilter || ''}
-                  onChange={(e) => handleFilterChange('customMessageFilter', e.target.value)}
-                />
-              )}
-            </div>
+            {renderStats()}
+            {renderPhoneFilters()}
+            {renderTemplateFilters()}
+            {renderMessageFilters()}
           </div>
           
           <div className="flex items-center justify-between">
