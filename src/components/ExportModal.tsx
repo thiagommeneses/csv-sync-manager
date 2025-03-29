@@ -9,10 +9,10 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, AlertTriangle, AlertCircle, CheckCircle, Calendar, Clock, Tag } from "lucide-react";
 import { CSVData } from "@/types/csv";
-import { exportToOmniChat, exportToZenvia, generateFileName, saveRecentFile } from "@/utils/csvUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { saveExportHistory } from "@/services/exportHistory";
 import { useToast } from "@/components/ui/use-toast";
+import { exportToOmniChat, exportToZenvia, generateFileName, saveRecentFile } from "@/utils/csvUtils";
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -23,7 +23,7 @@ interface ExportModalProps {
 }
 
 // Helper component for SMS text input
-const SMSInput = ({ smsText, setSmsText }) => {
+const SMSInput = ({ smsText, setSmsText }: { smsText: string, setSmsText: (text: string) => void }) => {
   const [charCount, setCharCount] = useState(0);
   const [statusColor, setStatusColor] = useState("text-green-500");
   const [statusEmoji, setStatusEmoji] = useState(<CheckCircle className="h-4 w-4" />);
@@ -75,7 +75,25 @@ const SMSInput = ({ smsText, setSmsText }) => {
 };
 
 // Helper component for advanced settings
-const AdvancedSettings = ({ scheduledDate, setScheduledDate, scheduledTime, setScheduledTime, theme, setTheme, fileName, setFileName }) => {
+const AdvancedSettings = ({ 
+  scheduledDate, 
+  setScheduledDate, 
+  scheduledTime, 
+  setScheduledTime, 
+  theme, 
+  setTheme, 
+  fileName, 
+  setFileName 
+}: { 
+  scheduledDate: Date, 
+  setScheduledDate: (date: Date) => void,
+  scheduledTime: string,
+  setScheduledTime: (time: string) => void,
+  theme: string,
+  setTheme: (theme: string) => void,
+  fileName: string,
+  setFileName: (name: string) => void
+}) => {
   const timeOptions = [];
   for (let hour = 0; hour < 24; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
@@ -218,12 +236,15 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
       const [hours, minutes] = scheduledTime.split(":").map(Number);
       dateTime.setHours(hours, minutes);
       
+      const fileSize = new Blob([csvContent]).size;
+      
       await saveExportHistory({
         name: downloadFileName,
         type: exportType,
         row_count: csvData.rows.length,
         theme: theme || null,
         scheduled_for: dateTime.toISOString(),
+        file_size: fileSize,
       });
       
       toast({

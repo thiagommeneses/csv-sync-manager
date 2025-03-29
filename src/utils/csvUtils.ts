@@ -1,3 +1,5 @@
+import Papa from 'papaparse';
+
 export interface RecentFile {
   id: string;
   name: string;
@@ -39,8 +41,8 @@ export const getRecentFiles = (): RecentFile[] => {
   }
 };
 
-// Update addRecentFile to store file content
-export const addRecentFile = (file: File, data: CSVData) => {
+// Save a recent file entry
+export const saveRecentFile = (data: CSVData, fileName: string) => {
   try {
     // Generate a preview from the first row data
     let preview = '';
@@ -62,7 +64,7 @@ export const addRecentFile = (file: File, data: CSVData) => {
     
     const newFile: RecentFile = {
       id: Date.now().toString(),
-      name: file.name,
+      name: fileName,
       date: new Date().toISOString(),
       rows: data.totalRows,
       preview,
@@ -90,7 +92,93 @@ export const addRecentFile = (file: File, data: CSVData) => {
   }
 };
 
-import Papa from 'papaparse';
+// Generate a filename for exports
+export const generateFileName = (channel: string, dateTime: Date, theme?: string): string => {
+  const formatDate = (date: Date, format: 'date' | 'time' = 'date'): string => {
+    if (format === 'date') {
+      return `${date.getDate().toString().padStart(2, '0')}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getFullYear()}`;
+    } else {
+      return `${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}`;
+    }
+  };
+  
+  const now = new Date();
+  const dispatchDate = formatDate(dateTime);
+  const dispatchTime = formatDate(dateTime, 'time');
+  const genDate = formatDate(now);
+  const genTime = formatDate(now, 'time');
+  
+  let fileName = `V4-MKT_${channel.toUpperCase()}_DISPARO_${dispatchDate}_${dispatchTime}`;
+  
+  if (theme && theme.trim() !== '') {
+    fileName += `_${theme.toUpperCase().replace(/\s+/g, '-')}`;
+  }
+  
+  fileName += `_GERADO-${genDate}_${genTime}.csv`;
+  
+  return fileName;
+};
+
+// Export data to OmniChat format
+export const exportToOmniChat = (data: CSVData): string => {
+  // Find the phone column index
+  const phoneIndex = data.headers.findIndex(h => 
+    h.toLowerCase().includes('phone') || h.toLowerCase().includes('telefone'));
+  
+  if (phoneIndex === -1) {
+    throw new Error('Não foi possível encontrar a coluna de telefone no arquivo CSV');
+  }
+  
+  // Create a new CSV with only the fullNumber column
+  const rows = data.rows.map(row => {
+    let phone = row[phoneIndex].trim().replace(/\D/g, '');
+    // Ensure it has country code
+    if (phone.length === 10 || phone.length === 11) {
+      phone = '55' + phone;
+    }
+    return { fullNumber: phone };
+  });
+  
+  // Generate CSV without BOM
+  const csvContent = Papa.unparse(rows, {
+    header: true,
+    delimiter: ',',
+  });
+  
+  return csvContent;
+};
+
+// Export data to Zenvia format
+export const exportToZenvia = (data: CSVData, smsText: string, delimiter: string = ';'): string => {
+  // Find the phone column index
+  const phoneIndex = data.headers.findIndex(h => 
+    h.toLowerCase().includes('phone') || h.toLowerCase().includes('telefone'));
+  
+  if (phoneIndex === -1) {
+    throw new Error('Não foi possível encontrar a coluna de telefone no arquivo CSV');
+  }
+  
+  // Create a new CSV with "celular" and "sms" columns
+  const rows = data.rows.map(row => {
+    let phone = row[phoneIndex].trim().replace(/\D/g, '');
+    // Ensure it has country code
+    if (phone.length === 10 || phone.length === 11) {
+      phone = '55' + phone;
+    }
+    return { 
+      celular: phone,
+      sms: smsText
+    };
+  });
+  
+  // Generate CSV without BOM
+  const csvContent = Papa.unparse(rows, {
+    header: true,
+    delimiter: delimiter,
+  });
+  
+  return csvContent;
+};
 
 export interface CSVData {
   headers: string[];
@@ -111,8 +199,10 @@ export interface FilterOptions {
     removeDuplicates: boolean;
     fixFormat: boolean;
   };
-  messages: 'all' | 'withContent' | 'empty';
-  templates: 'all' | 'withTemplate' | 'noTemplate';
+  messages: 'all' | 'withContent' | 'empty' | 'custom';
+  customMessageFilter?: string;
+  templates: 'all' | 'withTemplate' | 'noTemplate' | 'custom';
+  customTemplateFilter?: string;
   showOnlyMainColumns: boolean;
 }
 
@@ -313,6 +403,10 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
       filteredRows = filteredRows.filter(row => row[messageIndex].trim() !== '');
     } else if (filters.messages === 'empty') {
       filteredRows = filteredRows.filter(row => row[messageIndex].trim() === '');
+    } else if (filters.messages === 'custom') {
+      if (filters.customMessageFilter) {
+        filteredRows = filteredRows.filter(row => row[messageIndex].trim().includes(filters.customMessageFilter));
+      }
     }
   }
   
@@ -322,6 +416,10 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
       filteredRows = filteredRows.filter(row => row[templateIndex].trim() !== '');
     } else if (filters.templates === 'noTemplate') {
       filteredRows = filteredRows.filter(row => row[templateIndex].trim() === '');
+    } else if (filters.templates === 'custom') {
+      if (filters.customTemplateFilter) {
+        filteredRows = filteredRows.filter(row => row[templateIndex].trim().includes(filters.customTemplateFilter));
+      }
     }
   }
   

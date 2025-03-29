@@ -19,9 +19,9 @@ export interface FilterOptions {
     removeDuplicates: boolean;
     fixFormat: boolean;
   };
-  messages: 'all' | 'empty' | 'custom';
+  messages: 'all' | 'withContent' | 'empty' | 'custom';
   customMessageFilter?: string;
-  templates: 'all' | 'empty' | 'custom';
+  templates: 'all' | 'withTemplate' | 'noTemplate' | 'custom';
   customTemplateFilter?: string;
   showOnlyMainColumns: boolean;
 }
@@ -68,6 +68,7 @@ export interface RecentFile {
   date: string;
   rows: number;
   preview: string;
+  content?: string; // Added to match csvUtils definition
 }
 
 export type FileSplitOptions = {
