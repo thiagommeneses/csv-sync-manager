@@ -15,6 +15,7 @@ import CSVUpload from "@/components/CSVUpload";
 import FilterPanel from "@/components/FilterPanel";
 import CSVPreview from "@/components/CSVPreview";
 import ExportModal from "@/components/ExportModal";
+import RecentFilesPanel from "@/components/RecentFilesPanel";
 import { 
   FileText,
   Download,
@@ -33,7 +34,6 @@ import {
   RecentFile
 } from "@/utils/csvUtils";
 import { useToast } from "@/components/ui/use-toast";
-import RecentFilesPanel from "@/components/RecentFilesPanel";
 
 const emptyCSVData: CSVData = {
   headers: [],

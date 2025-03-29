@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import HomePage from "@/pages/HomePage";
 import HelpPage from "@/pages/HelpPage";
 import ExportHistoryPage from "@/pages/ExportHistoryPage";
+import SettingsPage from "@/pages/SettingsPage";
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -28,8 +29,7 @@ const Index = () => {
         // This will just show the home page where export options are available
         return <HomePage />;
       case "settings":
-        // Will implement settings page in future iterations
-        return <HelpPage />;
+        return <SettingsPage />;
       default:
         return <HomePage />;
     }
