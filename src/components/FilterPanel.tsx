@@ -23,6 +23,7 @@ import { FilterX, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { FilterOptions } from "@/types/csv";
 import { CSVStats } from "@/types/csv";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { findMessageColumnIndex } from "@/utils/csvUtils";
 
 interface FilterPanelProps {
   stats: CSVStats;
@@ -192,13 +193,16 @@ const FilterPanel = ({
       </Select>
       
       {localFilters.messages === 'custom' && (
-        <Input
-          type="text"
-          placeholder="Filtrar por texto..."
-          className="mt-2"
-          value={localFilters.customMessageFilter || ''}
-          onChange={(e) => handleFilterChange('customMessageFilter', e.target.value)}
-        />
+        <div className="mt-2 relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Filtrar por texto..."
+            className="pl-8"
+            value={localFilters.customMessageFilter || ''}
+            onChange={(e) => handleFilterChange('customMessageFilter', e.target.value)}
+          />
+        </div>
       )}
     </div>
   );

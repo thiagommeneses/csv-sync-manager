@@ -1,4 +1,3 @@
-
 import { CSVData, CSVStats, FilterOptions, CSVValidation, RecentFile } from "@/types/csv";
 import Papa from "papaparse";
 
@@ -24,10 +23,7 @@ export const analyzeCSV = (data: CSVData): CSVStats => {
     h.toLowerCase().includes('phone') || h.toLowerCase().includes('telefone')
   );
   
-  const messageIndex = data.headers.findIndex(h => 
-    h.toLowerCase().includes('message') || h.toLowerCase().includes('mensagem') ||
-    h.toLowerCase().includes('reply_message_text')
-  );
+  const messageIndex = findMessageColumnIndex(data.headers);
   
   let validPhoneNumbers = 0;
   let emptyMessages = 0;
@@ -65,6 +61,19 @@ export const analyzeCSV = (data: CSVData): CSVStats => {
     emptyMessages,
     correctedPhoneNumbers
   };
+};
+
+// Helper function to find the exact message column index
+export const findMessageColumnIndex = (headers: string[]): number => {
+  // Look specifically for reply_message_text first (exact match)
+  const exactIndex = headers.findIndex(h => h === 'reply_message_text');
+  if (exactIndex >= 0) return exactIndex;
+  
+  // If not found, try more general matches
+  return headers.findIndex(h => 
+    h.toLowerCase().includes('message') || h.toLowerCase().includes('mensagem') ||
+    h.toLowerCase().includes('reply_message_text')
+  );
 };
 
 export const parseCSV = (csvText: string): CSVData => {
@@ -162,10 +171,10 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
     h.toLowerCase().includes('phone') || h.toLowerCase().includes('telefone')
   );
   
-  const messageIndex = data.headers.findIndex(h => 
-    h.toLowerCase().includes('message') || h.toLowerCase().includes('mensagem') ||
-    h.toLowerCase().includes('reply_message_text')
-  );
+  // Use the specific helper to find the message column index
+  const messageIndex = findMessageColumnIndex(data.headers);
+  
+  console.log(`Message column index found: ${messageIndex}, column name: ${data.headers[messageIndex]}`);
   
   const templateIndex = data.headers.findIndex(h => 
     h.toLowerCase().includes('template_title')
@@ -215,25 +224,31 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
     }
   }
   
-  // Filter by message content - FIX FOR MESSAGE FILTERING
+  // Filter by message content
   if (messageIndex >= 0) {
     if (filters.messages === 'empty') {
+      console.log(`Filtering for empty messages in column index ${messageIndex} (${data.headers[messageIndex]})`);
+      
       filteredRows = filteredRows.filter(row => {
-        // Handle case where message column might not exist or be out of bounds
-        if (row.length <= messageIndex) return true;
-        return isEmpty(row[messageIndex]);
+        const hasEmptyMessage = row.length <= messageIndex || isEmpty(row[messageIndex]);
+        
+        // Additional debug logging
+        if (filteredRows.length < 5) {
+          console.log(`Row check: ${row[messageIndex] || 'undefined'}, isEmpty: ${hasEmptyMessage}`);
+        }
+        
+        return hasEmptyMessage;
       });
+      
+      console.log(`Found ${filteredRows.length} rows with empty messages`);
     } else if (filters.messages === 'withContent') {
       filteredRows = filteredRows.filter(row => {
-        // Handle case where message column might not exist or be out of bounds
-        if (row.length <= messageIndex) return false;
-        return !isEmpty(row[messageIndex]);
+        return row.length > messageIndex && !isEmpty(row[messageIndex]);
       });
     } else if (filters.messages === 'custom' && filters.customMessageFilter) {
       const searchTerms = filters.customMessageFilter.toLowerCase().split(' ').filter(term => term.trim() !== '');
       
       filteredRows = filteredRows.filter(row => {
-        // Handle case where message column might not exist or be out of bounds
         if (row.length <= messageIndex) return false;
         const message = (row[messageIndex] || '').toLowerCase();
         return searchTerms.every(term => message.includes(term));
@@ -275,11 +290,9 @@ export const applyFilters = (data: CSVData, filters: FilterOptions): CSVData => 
   
   // Count empty messages in filtered data
   if (messageIndex >= 0) {
-    filteredRows.forEach(row => {
-      if (row.length > messageIndex && isEmpty(row[messageIndex])) {
-        stats.emptyMessages++;
-      }
-    });
+    stats.emptyMessages = filteredRows.filter(row => 
+      row.length <= messageIndex || isEmpty(row[messageIndex])
+    ).length;
   }
   
   // Return filtered data with stats attached
