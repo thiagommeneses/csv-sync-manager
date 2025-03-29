@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,9 @@ import {
   saveRecentFile 
 } from "@/utils/csvUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { saveExportHistory } from "@/services/exportHistory";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -25,6 +29,7 @@ interface ExportModalProps {
 }
 
 const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: ExportModalProps) => {
+  const { toast } = useToast();
   const [smsText, setSmsText] = useState("");
   const [charCount, setCharCount] = useState(0);
   const [statusColor, setStatusColor] = useState("text-green-500");
@@ -34,6 +39,7 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
   const [scheduledTime, setScheduledTime] = useState("12:00");
   const [theme, setTheme] = useState("");
   const [fileName, setFileName] = useState("");
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const timeOptions = [];
   for (let hour = 0; hour < 24; hour++) {
@@ -76,7 +82,7 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
     setScheduledTime(value);
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     try {
       let csvContent: string;
       
@@ -84,7 +90,11 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
         csvContent = exportToOmniChat(csvData);
       } else {
         if (!smsText.trim()) {
-          alert("Por favor, insira o texto do SMS para exportar para o Zenvia");
+          toast({
+            title: "Erro",
+            description: "Por favor, insira o texto do SMS para exportar para o Zenvia",
+            variant: "destructive",
+          });
           return;
         }
         csvContent = exportToZenvia(csvData, smsText, delimiter);
@@ -104,16 +114,39 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
       
       saveRecentFile(csvData, downloadFileName);
       
+      // Salvar no histórico do Supabase
+      const dateTime = new Date(scheduledDate);
+      const [hours, minutes] = scheduledTime.split(":").map(Number);
+      dateTime.setHours(hours, minutes);
+      
+      await saveExportHistory({
+        name: downloadFileName,
+        type: exportType,
+        row_count: csvData.rows.length,
+        theme: theme || null,
+        scheduled_for: dateTime.toISOString(),
+      });
+      
+      toast({
+        title: "Exportação concluída",
+        description: `O arquivo ${downloadFileName} foi exportado com sucesso`,
+      });
+      
       onClose();
     } catch (error) {
       console.error("Erro na exportação:", error);
-      alert("Falha ao exportar o arquivo CSV. Por favor, tente novamente.");
+      toast({
+        title: "Falha na exportação",
+        description: "Ocorreu um erro ao exportar o arquivo CSV. Por favor, tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDatePicked = (date: Date | undefined) => {
+  const handleSelect = (date: Date | undefined) => {
     if (date) {
       setScheduledDate(date);
+      setCalendarOpen(false);
     }
   };
 
@@ -183,11 +216,29 @@ const ExportModal = ({ isOpen, onClose, exportType, csvData, delimiter = ',' }: 
                     <Calendar className="h-4 w-4" />
                     <span>Data do Disparo</span>
                   </Label>
-                  <DatePicker 
-                    date={scheduledDate} 
-                    onSelect={handleDatePicked} 
-                    className="w-full"
-                  />
+                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {scheduledDate ? (
+                          scheduledDate.toLocaleDateString()
+                        ) : (
+                          <span>Selecione uma data</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 pointer-events-auto">
+                      <DatePicker
+                        date={scheduledDate}
+                        onSelect={handleSelect}
+                        mode="single"
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 
                 <div className="space-y-2">

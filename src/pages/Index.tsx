@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import HomePage from "@/pages/HomePage";
 import HelpPage from "@/pages/HelpPage";
+import ExportHistoryPage from "@/pages/ExportHistoryPage";
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -19,6 +20,8 @@ const Index = () => {
         return <HomePage />;
       case "help":
         return <HelpPage />;
+      case "history":
+        return <ExportHistoryPage />;
       default:
         return <HomePage />;
     }
