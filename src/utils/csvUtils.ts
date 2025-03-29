@@ -418,11 +418,11 @@ const MAX_RECENT_FILES = 10;
 export const saveRecentFile = (data: CSVData, name: string, originalFilename?: string): RecentFile => {
   const files = getRecentFiles();
   
-  // Create a preview of the first few rows
-  const previewRows = data.rows.slice(0, 3);
+  // Create a preview with the headers and first data row (not including headers)
+  const firstDataRow = data.rows.length > 0 ? data.rows[0] : [];
   const previewData = {
     headers: data.headers,
-    rows: previewRows
+    rows: [firstDataRow]  // Just store the first actual data row for preview
   };
   
   const fileSize = new Blob([data.rawData]).size;

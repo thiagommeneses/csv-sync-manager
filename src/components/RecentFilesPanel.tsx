@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Calendar, Table, HardDrive, Hash } from "lucide-react";
+import { FileText, Calendar, Table, HardDrive, Hash, Upload, Database } from "lucide-react";
 import { RecentFile } from "@/types/csv";
 
 interface RecentFilesPanelProps {
@@ -44,6 +44,33 @@ const RecentFilesPanel = ({ files, onFileSelect }: RecentFilesPanelProps) => {
     return `arquivo_${file.id.split('_')[1]}.csv`;
   };
 
+  // Get first data row for preview instead of headers
+  const getFirstDataRowPreview = (file: RecentFile) => {
+    if (!file.preview) return "";
+    
+    try {
+      const previewData = JSON.parse(file.preview);
+      if (previewData.rows && previewData.rows.length > 0) {
+        // Return the first data row joined as a string
+        return previewData.rows[0].join(', ');
+      }
+    } catch (error) {
+      console.error("Error parsing preview data:", error);
+    }
+    
+    return "";
+  };
+
+  // Determine if file is uploaded or local
+  const getFileSourceType = (file: RecentFile) => {
+    // If it has an originalFilename, it was uploaded through the interface
+    if (file.originalFilename) {
+      return "upload";
+    }
+    // Otherwise it's likely a local or generated file
+    return "local";
+  };
+
   return (
     <Card className="border-blue-100 dark:border-blue-900">
       <CardHeader className="py-3 bg-blue-50 dark:bg-blue-900/30 rounded-t-lg">
@@ -67,9 +94,22 @@ const RecentFilesPanel = ({ files, onFileSelect }: RecentFilesPanelProps) => {
                 >
                   <FileText className="h-5 w-5 text-blue-500 flex-shrink-0 mt-1" />
                   <div className="overflow-hidden flex-1">
-                    <p className="font-medium text-gray-800 dark:text-gray-200 truncate" title={file.name}>
-                      {file.name}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-800 dark:text-gray-200 truncate" title={file.name}>
+                        {file.name}
+                      </p>
+                      {getFileSourceType(file) === "upload" ? (
+                        <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Upload className="h-3 w-3" />
+                          Enviado
+                        </span>
+                      ) : (
+                        <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Database className="h-3 w-3" />
+                          Local
+                        </span>
+                      )}
+                    </div>
                     <div className="flex flex-wrap items-center gap-2 text-gray-500 dark:text-gray-400 text-xs mt-1">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
@@ -89,11 +129,11 @@ const RecentFilesPanel = ({ files, onFileSelect }: RecentFilesPanelProps) => {
                     <div className="flex flex-col space-y-1 mt-1">
                       <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                         <Hash className="h-3 w-3" />
-                        <span className="font-medium">Arquivo:</span> {extractFileName(file)}
+                        <span className="font-medium">Arquivo original:</span> {extractFileName(file)}
                       </p>
-                      {file.preview && (
+                      {getFirstDataRowPreview(file) && (
                         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          <span className="font-medium">Amostra:</span> {file.preview}
+                          <span className="font-medium">Amostra de dados:</span> {getFirstDataRowPreview(file)}
                         </p>
                       )}
                     </div>
