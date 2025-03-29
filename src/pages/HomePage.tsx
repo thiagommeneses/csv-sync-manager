@@ -22,6 +22,7 @@ import {
   Database,
   HelpCircle,
   Scissors,
+  X,
 } from "lucide-react";
 import { CSVData, CSVStats, FilterOptions } from "@/types/csv";
 import { 
@@ -32,6 +33,8 @@ import {
   getRecentFiles, 
   loadSavedCSVData,
   saveRecentFile,
+  saveCurrentFile,
+  getCurrentFile,
   RecentFile,
   isEmpty
 } from "@/utils/csvUtils";
@@ -75,9 +78,11 @@ const HomePage = () => {
   const [partsCount, setPartsCount] = useState(2);
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
   const [showRecentFiles, setShowRecentFiles] = useState(true);
+  const [isCloseFileDialogOpen, setIsCloseFileDialogOpen] = useState(false);
   
   useEffect(() => {
     loadRecentFiles();
+    loadSavedCurrentFile();
   }, []);
   
   const loadRecentFiles = () => {
@@ -85,7 +90,17 @@ const HomePage = () => {
     setRecentFiles(files);
   };
   
-  const handleFileUploaded = (data: CSVData) => {
+  const loadSavedCurrentFile = () => {
+    const currentFile = getCurrentFile();
+    if (currentFile && currentFile.headers.length > 0) {
+      setOriginalCSVData(currentFile);
+      setFilteredCSVData(currentFile);
+      setStats(analyzeCSV(currentFile));
+      setFilters({...defaultFilters, showOnlyMainColumns: true});
+    }
+  };
+  
+  const handleFileUploaded = (data: CSVData, filename?: string) => {
     setIsLoading(true);
     
     setTimeout(() => {
@@ -114,10 +129,12 @@ const HomePage = () => {
       setFilters({...defaultFilters, showOnlyMainColumns: true});
       setIsLoading(false);
       
-      const fileName = "Arquivo importado " + new Date().toLocaleString();
-      saveRecentFile(data, fileName);
+      const displayName = "Arquivo importado " + new Date().toLocaleString();
+      saveRecentFile(data, displayName, filename);
       
-      saveImportHistory(fileName, data.totalRows, data.rawData.length);
+      saveCurrentFile(data);
+      
+      saveImportHistory(displayName, data.totalRows, data.rawData.length);
       
       toast({
         title: "Arquivo carregado com sucesso",
@@ -138,6 +155,8 @@ const HomePage = () => {
         setFilteredCSVData(data);
         setStats(analyzeCSV(data));
         setFilters({...defaultFilters, showOnlyMainColumns: true});
+        
+        saveCurrentFile(data);
         
         toast({
           title: "Arquivo carregado com sucesso",
@@ -261,6 +280,24 @@ const HomePage = () => {
     return [headerLine, ...rowLines].join('\n');
   };
 
+  const handleCloseFile = () => {
+    setIsCloseFileDialogOpen(true);
+  };
+
+  const confirmCloseFile = () => {
+    setOriginalCSVData(emptyCSVData);
+    setFilteredCSVData(emptyCSVData);
+    setStats(defaultStats);
+    setFilters(defaultFilters);
+    saveCurrentFile(null);
+    setIsCloseFileDialogOpen(false);
+    
+    toast({
+      title: "Arquivo fechado",
+      description: "O arquivo CSV foi fechado com sucesso.",
+    });
+  };
+
   const hasData = originalCSVData.headers.length > 0;
 
   return (
@@ -305,6 +342,14 @@ const HomePage = () => {
             >
               <HelpCircle className="h-4 w-4" />
               <span>Ajuda</span>
+            </Button>
+            <Button
+              variant="destructive"
+              className="space-x-2"
+              onClick={handleCloseFile}
+            >
+              <X className="h-4 w-4" />
+              <span>Fechar Arquivo</span>
             </Button>
           </div>
         )}
@@ -396,6 +441,24 @@ const HomePage = () => {
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                 <AlertDialogAction onClick={executeSplit}>Dividir e Baixar</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          
+          <AlertDialog 
+            open={isCloseFileDialogOpen} 
+            onOpenChange={setIsCloseFileDialogOpen}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Fechar arquivo CSV</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja fechar o arquivo atual? Esta ação removerá o arquivo da visualização atual.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmCloseFile}>Fechar Arquivo</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

@@ -415,7 +415,7 @@ export const generateFileName = (channel: string, date: Date, theme?: string): s
 const RECENT_FILES_KEY = 'csv-manager-recent-files';
 const MAX_RECENT_FILES = 10;
 
-export const saveRecentFile = (data: CSVData, name: string): RecentFile => {
+export const saveRecentFile = (data: CSVData, name: string, originalFilename?: string): RecentFile => {
   const files = getRecentFiles();
   
   // Create a preview of the first few rows
@@ -434,7 +434,8 @@ export const saveRecentFile = (data: CSVData, name: string): RecentFile => {
     rows: data.rows.length,
     size: fileSize,
     preview: JSON.stringify(previewData),
-    content: data.rawData
+    content: data.rawData,
+    originalFilename
   };
   
   // Add to front of array and limit to max files
@@ -472,6 +473,28 @@ export const loadSavedCSVData = async (fileId: string): Promise<CSVData | null> 
     return parseCSV(file.content);
   } catch (error) {
     console.error('Error parsing saved CSV:', error);
+    return null;
+  }
+};
+
+const CURRENT_FILE_KEY = 'csv-manager-current-file';
+
+export const saveCurrentFile = (data: CSVData | null) => {
+  if (data) {
+    localStorage.setItem(CURRENT_FILE_KEY, JSON.stringify(data));
+  } else {
+    localStorage.removeItem(CURRENT_FILE_KEY);
+  }
+};
+
+export const getCurrentFile = (): CSVData | null => {
+  try {
+    const fileJson = localStorage.getItem(CURRENT_FILE_KEY);
+    if (!fileJson) return null;
+    
+    return JSON.parse(fileJson);
+  } catch (error) {
+    console.error('Error loading current file:', error);
     return null;
   }
 };

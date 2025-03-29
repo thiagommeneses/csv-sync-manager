@@ -1,4 +1,3 @@
-
 export interface CSVData {
   headers: string[];
   rows: string[][];
@@ -67,9 +66,10 @@ export interface RecentFile {
   name: string;
   date: string;
   rows: number;
-  size?: number; // Added size property as optional
+  size?: number;
   preview?: string;
   content?: string;
+  originalFilename?: string;
 }
 
 export type FileSplitOptions = {

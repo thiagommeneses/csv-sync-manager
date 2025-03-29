@@ -1,6 +1,5 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Calendar, Table, HardDrive } from "lucide-react";
+import { FileText, Calendar, Table, HardDrive, Hash } from "lucide-react";
 import { RecentFile } from "@/types/csv";
 
 interface RecentFilesPanelProps {
@@ -32,6 +31,17 @@ const RecentFilesPanel = ({ files, onFileSelect }: RecentFilesPanelProps) => {
     } else {
       return (bytes / (1024 * 1024)).toFixed(1) + " MB";
     }
+  };
+
+  // Extract filename from the preview data or use a default format
+  const extractFileName = (file: RecentFile) => {
+    // Check if there's an originalFilename stored
+    if (file.originalFilename) {
+      return file.originalFilename;
+    }
+    
+    // Otherwise, generate a generic name
+    return `arquivo_${file.id.split('_')[1]}.csv`;
   };
 
   return (
@@ -76,11 +86,17 @@ const RecentFilesPanel = ({ files, onFileSelect }: RecentFilesPanelProps) => {
                         </div>
                       )}
                     </div>
-                    {file.preview && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
-                        Amostra: {file.preview}
+                    <div className="flex flex-col space-y-1 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                        <Hash className="h-3 w-3" />
+                        <span className="font-medium">Arquivo:</span> {extractFileName(file)}
                       </p>
-                    )}
+                      {file.preview && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          <span className="font-medium">Amostra:</span> {file.preview}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
