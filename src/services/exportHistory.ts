@@ -30,7 +30,11 @@ export const saveExportHistory = async (record: Omit<ExportRecord, 'id' | 'expor
       return null;
     }
     
-    return data;
+    // Ensure the type is properly cast as 'omnichat' | 'zenvia'
+    return data ? {
+      ...data,
+      type: data.type as 'omnichat' | 'zenvia',
+    } : null;
   } catch (error) {
     console.error('Erro ao salvar histórico de exportação:', error);
     return null;
@@ -50,7 +54,11 @@ export const getExportHistory = async (): Promise<ExportRecord[]> => {
       return [];
     }
     
-    return data || [];
+    // Ensure the type is properly cast for each record
+    return data ? data.map(record => ({
+      ...record,
+      type: record.type as 'omnichat' | 'zenvia'
+    })) : [];
   } catch (error) {
     console.error('Erro ao obter histórico de exportação:', error);
     return [];
